@@ -4,6 +4,7 @@ import ChordTypeSelector from "./components/ChordTypeSelector";
 import Fretboard from "./components/Fretboard";
 import KeySelector from "./components/KeySelector";
 import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "./lib/chords";
+import { playNote } from "./lib/audio";
 
 export default function App() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
@@ -23,7 +24,7 @@ export default function App() {
       <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
       <ChordTypeSelector selected={chordType} onSelect={setChordType} />
       <ChordNotesDisplay chordName={`${selectedKey} ${typeLabel}`} notes={chord.notes} root={chord.root} />
-      <Fretboard chordChromas={chord.chromas} rootChroma={chord.rootChroma} noteLabels={noteLabels} />
+      <Fretboard chordChromas={chord.chromas} rootChroma={chord.rootChroma} noteLabels={noteLabels} onNotePlay={(position) => playNote(position.note)} />
     </div>
   );
 }
