@@ -1,5 +1,7 @@
 # Guitar Chords Helper
 
+**Live demo: https://milkmidi.github.io/guitar-chords-helper/**
+
 吉他學習用的 Web App：選一個調（C～B）和和弦類型（major、minor、7、maj7、m7、sus2、sus4、dim、aug），就能看到——
 
 - **橫式指板**（6 弦 × 12 格 + 空弦）亮起該和弦的**所有組成音位置**：根音橘色、其他組成音藍色，圓點內顯示音名（等音以和弦拼法呈現，例如 Cm 顯示 Eb 而不是 D#）
