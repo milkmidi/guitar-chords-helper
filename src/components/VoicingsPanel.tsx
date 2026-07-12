@@ -10,9 +10,15 @@ interface Props {
 export default function VoicingsPanel({ chordName, voicings, onPlay }: Props) {
   if (voicings.length === 0) return null;
   return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-bold text-slate-700">{chordName} 按法</h2>
-      <div className="flex gap-4 overflow-x-auto pb-2">
+    <section className="content-section" aria-labelledby="voicings-title">
+      <div className="section-heading">
+        <div>
+          <div className="eyebrow">03 · Play a voicing</div>
+          <h2 id="voicings-title">{chordName} 常用按法</h2>
+        </div>
+        <p className="section-note">點擊卡片播放刷弦</p>
+      </div>
+      <div className="voicings-list">
         {voicings.map((voicing, i) => (
           <ChordDiagram
             key={i}

@@ -7,18 +7,14 @@ interface Props {
 
 export default function ChordTypeSelector({ selected, onSelect }: Props) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="type-selector" aria-label="選擇和弦類型">
       {CHORD_TYPES.map((type) => (
         <button
           key={type.id}
           type="button"
           onClick={() => onSelect(type.id)}
           aria-pressed={type.id === selected}
-          className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-            type.id === selected
-              ? "bg-blue-500 text-white"
-              : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-          }`}
+          className={`type-button ${type.id === selected ? "is-selected" : ""}`}
         >
           {type.label}
         </button>

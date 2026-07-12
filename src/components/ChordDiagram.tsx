@@ -28,11 +28,9 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
       type="button"
       onClick={onPlay}
       aria-label={`播放按法 ${label}`}
-      className={`shrink-0 rounded-lg bg-white p-2 shadow ${
-        onPlay ? "cursor-pointer transition-shadow hover:shadow-md" : ""
-      }`}
+      className={`chord-diagram ${onPlay ? "is-playable" : ""}`}
     >
-      <p className="mb-1 text-center text-sm font-semibold text-slate-600">{label}</p>
+      <p className="diagram-label">{label}</p>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} width={WIDTH * 1.2} height={HEIGHT * 1.2}>
         {Array.from({ length: FRET_WINDOW + 1 }, (_, f) => (
           <line
@@ -42,7 +40,7 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
             x2={LEFT + GRID_W}
             y2={GRID_TOP + f * FRET_GAP}
             strokeWidth={1}
-            className="stroke-slate-400"
+            className="diagram-fret"
           />
         ))}
         {Array.from({ length: STRING_COUNT }, (_, i) => (
@@ -53,13 +51,13 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
             x2={stringX(i)}
             y2={GRID_TOP + GRID_H}
             strokeWidth={1}
-            className="stroke-slate-500"
+            className="diagram-string"
           />
         ))}
         {baseFret === 1 ? (
-          <rect x={LEFT - 1} y={GRID_TOP - 4} width={GRID_W + 2} height={4} className="fill-slate-800" />
+          <rect x={LEFT - 1} y={GRID_TOP - 4} width={GRID_W + 2} height={4} className="diagram-nut" />
         ) : (
-          <text x={LEFT - 6} y={fretY(1) + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
+          <text x={LEFT - 6} y={fretY(1) + 4} textAnchor="end" className="diagram-small-text">
             {baseFret}fr
           </text>
         )}
@@ -70,7 +68,7 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
               x={stringX(i)}
               y={GRID_TOP - 10}
               textAnchor="middle"
-              className="fill-slate-600 text-[12px] font-bold"
+              className="diagram-muted-mark"
             >
               ✕
             </text>
@@ -81,7 +79,7 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
               cy={GRID_TOP - 14}
               r={4.5}
               strokeWidth={1.5}
-              className="fill-none stroke-slate-600"
+              className="diagram-open-string"
             />
           ) : null
         )}
@@ -98,20 +96,20 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
               width={stringX(to) - stringX(from) + 16}
               height={16}
               rx={8}
-              className="fill-slate-800"
+              className="diagram-finger"
             />
           );
         })}
         {frets.map((f, i) =>
           f > 0 ? (
             <g key={i}>
-              <circle cx={stringX(i)} cy={fretY(f)} r={8} className="fill-slate-800" />
+              <circle cx={stringX(i)} cy={fretY(f)} r={8} className="diagram-finger" />
               {fingers[i] > 0 && (
                 <text
                   x={stringX(i)}
                   y={fretY(f) + 3.5}
                   textAnchor="middle"
-                  className="fill-white text-[10px] font-semibold"
+                  className="diagram-finger-number"
                 >
                   {fingers[i]}
                 </text>
@@ -120,7 +118,7 @@ export default function ChordDiagram({ voicing, label, onPlay }: Props) {
           ) : null
         )}
         {STRING_LABELS.map((s, i) => (
-          <text key={s} x={stringX(i)} y={HEIGHT - 6} textAnchor="middle" className="fill-slate-500 text-[9px]">
+          <text key={s} x={stringX(i)} y={HEIGHT - 6} textAnchor="middle" className="diagram-string-label">
             {s}
           </text>
         ))}

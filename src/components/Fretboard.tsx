@@ -23,22 +23,22 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
   const activePositions = FRETBOARD.filter((p) => chordChromas.includes(p.chroma));
 
   return (
-    <div className="overflow-x-auto rounded-xl bg-white p-2 shadow">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full min-w-[900px]">
+    <div className="fretboard-shell">
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="fretboard-canvas">
         <rect
           x={NUT_X}
           y={TOP - 14}
           width={FRET_W * FRET_COUNT}
           height={STRING_GAP * 5 + 28}
           rx={4}
-          className="fill-amber-100"
+          className="fretboard-wood"
         />
         <rect
           x={NUT_X - 6}
           y={TOP - 14}
           width={6}
           height={STRING_GAP * 5 + 28}
-          className="fill-slate-700"
+          className="fretboard-nut"
         />
         {Array.from({ length: FRET_COUNT }, (_, i) => i + 1).map((f) => (
           <line
@@ -48,14 +48,14 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
             x2={NUT_X + f * FRET_W}
             y2={TOP + STRING_GAP * 5 + 14}
             strokeWidth={2}
-            className="stroke-slate-400"
+            className="fret-wire"
           />
         ))}
         {SINGLE_MARKER_FRETS.map((f) => (
-          <circle key={f} cx={fretCenterX(f)} cy={TOP + 2.5 * STRING_GAP} r={7} className="fill-slate-300" />
+          <circle key={f} cx={fretCenterX(f)} cy={TOP + 2.5 * STRING_GAP} r={7} className="fret-marker" />
         ))}
-        <circle cx={fretCenterX(12)} cy={TOP + 1.5 * STRING_GAP} r={7} className="fill-slate-300" />
-        <circle cx={fretCenterX(12)} cy={TOP + 3.5 * STRING_GAP} r={7} className="fill-slate-300" />
+        <circle cx={fretCenterX(12)} cy={TOP + 1.5 * STRING_GAP} r={7} className="fret-marker" />
+        <circle cx={fretCenterX(12)} cy={TOP + 3.5 * STRING_GAP} r={7} className="fret-marker" />
         {Array.from({ length: 6 }, (_, i) => i + 1).map((s) => (
           <line
             key={s}
@@ -64,7 +64,7 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
             x2={BOARD_W}
             y2={stringY(s)}
             strokeWidth={0.8 + s * 0.35}
-            className="stroke-slate-600"
+            className="guitar-string"
           />
         ))}
         {Array.from({ length: FRET_COUNT }, (_, i) => i + 1).map((f) => (
@@ -73,7 +73,7 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
             x={fretCenterX(f)}
             y={HEIGHT - 8}
             textAnchor="middle"
-            className="fill-slate-500 text-[12px]"
+            className="fret-number"
           >
             {f}
           </text>
@@ -84,19 +84,19 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
             <g
               key={`${p.string}-${p.fret}`}
               onClick={onNotePlay ? () => onNotePlay(p) : undefined}
-              className={onNotePlay ? "cursor-pointer" : undefined}
+              className={onNotePlay ? "fret-note is-playable" : "fret-note"}
             >
               <circle
                 cx={fretCenterX(p.fret)}
                 cy={stringY(p.string)}
                 r={13}
-                className={isRoot ? "fill-orange-500" : "fill-blue-500"}
+                className={isRoot ? "note-circle root" : "note-circle chord"}
               />
               <text
                 x={fretCenterX(p.fret)}
                 y={stringY(p.string) + 4}
                 textAnchor="middle"
-                className="pointer-events-none fill-white text-[11px] font-semibold"
+                className="note-circle-label"
               >
                 {noteLabels.get(p.chroma) ?? ""}
               </text>

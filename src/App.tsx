@@ -23,17 +23,64 @@ export default function App() {
   const voicings = useMemo(() => getVoicings(selectedKey, chordType), [selectedKey, chordType]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold text-slate-800">Guitar Chords Helper</h1>
-      <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
-      <ChordTypeSelector selected={chordType} onSelect={setChordType} />
+    <main className="page">
+      <header className="hero">
+        <div>
+          <div className="eyebrow">Chord desk · Interactive fretboard</div>
+          <h1>Guitar Chords Helper</h1>
+          <p className="hero-subtitle">選一個根音與和弦類型，立即查看組成音、指板位置與實用按法。</p>
+        </div>
+        <div className="hero-mark" aria-hidden="true">
+          <span>♩</span>
+        </div>
+      </header>
+
+      <section className="control-panel" aria-labelledby="chord-builder-title">
+        <div className="section-heading compact">
+          <div>
+            <div className="eyebrow">01 · Build a chord</div>
+            <h2 id="chord-builder-title">建立和弦</h2>
+          </div>
+          <span className="status-badge"><span className="status-dot" />可互動播放</span>
+        </div>
+        <div className="selector-group">
+          <p className="field-label">根音</p>
+          <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
+        </div>
+        <div className="selector-group">
+          <p className="field-label">和弦類型</p>
+          <ChordTypeSelector selected={chordType} onSelect={setChordType} />
+        </div>
+      </section>
+
       <ChordNotesDisplay chordName={`${selectedKey} ${typeLabel}`} notes={chord.notes} root={chord.root} />
-      <Fretboard chordChromas={chord.chromas} rootChroma={chord.rootChroma} noteLabels={noteLabels} onNotePlay={(position) => playNote(position.note)} />
+
+      <section className="content-section" aria-labelledby="fretboard-title">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">02 · Explore notes</div>
+            <h2 id="fretboard-title">指板上的和弦音</h2>
+          </div>
+          <p className="section-note">點擊音符即可試聽</p>
+        </div>
+        <Fretboard
+          chordChromas={chord.chromas}
+          rootChroma={chord.rootChroma}
+          noteLabels={noteLabels}
+          onNotePlay={(position) => playNote(position.note)}
+        />
+      </section>
+
       <VoicingsPanel
         chordName={`${selectedKey} ${typeLabel}`}
         voicings={voicings}
         onPlay={(voicing) => playStrum(voicing.midi)}
       />
-    </div>
+
+      <footer className="page-footer">
+        <span>Guitar Chords Helper</span>
+        <span>點擊音符或按法即可播放</span>
+      </footer>
+    </main>
   );
 }

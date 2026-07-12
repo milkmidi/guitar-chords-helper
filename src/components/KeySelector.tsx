@@ -7,18 +7,14 @@ interface Props {
 
 export default function KeySelector({ selected, onSelect }: Props) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="key-selector" aria-label="選擇根音">
       {KEYS.map((key) => (
         <button
           key={key}
           type="button"
           onClick={() => onSelect(key)}
           aria-pressed={key === selected}
-          className={`w-12 rounded-lg py-2 text-sm font-semibold transition-colors ${
-            key === selected
-              ? "bg-orange-500 text-white"
-              : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-          }`}
+          className={`key-button ${key === selected ? "is-selected" : ""}`}
         >
           {key}
         </button>
