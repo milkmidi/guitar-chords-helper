@@ -6,7 +6,7 @@ import KeySelector from "./components/KeySelector";
 import VoicingsPanel from "./components/VoicingsPanel";
 import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "./lib/chords";
 import { getVoicings } from "./lib/voicings";
-import { playNote } from "./lib/audio";
+import { playNote, playStrum } from "./lib/audio";
 
 
 export default function App() {
@@ -30,7 +30,11 @@ export default function App() {
       <ChordTypeSelector selected={chordType} onSelect={setChordType} />
       <ChordNotesDisplay chordName={`${selectedKey} ${typeLabel}`} notes={chord.notes} root={chord.root} />
       <Fretboard chordChromas={chord.chromas} rootChroma={chord.rootChroma} noteLabels={noteLabels} onNotePlay={(position) => playNote(position.note)} />
-      <VoicingsPanel chordName={`${selectedKey} ${typeLabel}`} voicings={voicings} />
+      <VoicingsPanel
+        chordName={`${selectedKey} ${typeLabel}`}
+        voicings={voicings}
+        onPlay={(voicing) => playStrum(voicing.midi)}
+      />
     </div>
   );
 }
