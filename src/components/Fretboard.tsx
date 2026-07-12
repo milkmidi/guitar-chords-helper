@@ -59,7 +59,7 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
         {Array.from({ length: 6 }, (_, i) => i + 1).map((s) => (
           <line
             key={s}
-            x1={NUT_X - 6}
+            x1={28}
             y1={stringY(s)}
             x2={BOARD_W}
             y2={stringY(s)}

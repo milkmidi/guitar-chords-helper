@@ -13,6 +13,7 @@ export default function ChordTypeSelector({ selected, onSelect }: Props) {
           key={type.id}
           type="button"
           onClick={() => onSelect(type.id)}
+          aria-pressed={type.id === selected}
           className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
             type.id === selected
               ? "bg-blue-500 text-white"

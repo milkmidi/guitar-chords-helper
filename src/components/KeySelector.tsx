@@ -13,6 +13,7 @@ export default function KeySelector({ selected, onSelect }: Props) {
           key={key}
           type="button"
           onClick={() => onSelect(key)}
+          aria-pressed={key === selected}
           className={`w-12 rounded-lg py-2 text-sm font-semibold transition-colors ${
             key === selected
               ? "bg-orange-500 text-white"
