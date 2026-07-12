@@ -48,5 +48,5 @@ if (problems.length > 0) {
 }
 
 mkdirSync(new URL("../src/data/", import.meta.url), { recursive: true });
-writeFileSync(new URL("../src/data/voicings.json", import.meta.url), JSON.stringify(out));
+writeFileSync(new URL("../src/data/voicings.json", import.meta.url), `${JSON.stringify(out)}\n`);
 console.log("wrote src/data/voicings.json");

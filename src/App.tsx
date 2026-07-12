@@ -8,7 +8,6 @@ import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "./lib/cho
 import { getVoicings } from "./lib/voicings";
 import { playNote, playStrum } from "./lib/audio";
 
-
 export default function App() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
   const [chordType, setChordType] = useState<ChordTypeId>("major");
