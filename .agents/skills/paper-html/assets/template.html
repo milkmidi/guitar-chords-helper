@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Untitled document</title>
+<style>
+  :root {
+    /* Core palette */
+    --ivory:    #FAF9F5;
+    --slate:    #141413;
+    --clay:     #D97757;
+    --oat:      #E3DACC;
+    --olive:    #788C5D;
+    /* Neutrals */
+    --white:    #FFFFFF;
+    --gray-100: #F0EEE6;
+    --gray-300: #D1CFC5;
+    --gray-500: #87867F;
+    --gray-700: #3D3D3A;
+    /* Semantic accents */
+    --warning:  #C78E3F;
+    --danger:   #B04A4A;
+    --info:     #5C7CA3;
+    /* Type */
+    --serif: ui-serif, Georgia, 'Times New Roman', serif;
+    --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono:  ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    /* Shape */
+    --radius-panel: 12px;
+    --radius-row:   8px;
+    --border: 1.5px solid var(--gray-300);
+    /* Elevation */
+    --shadow-sm: 0 1px 2px rgba(20,20,19,0.06);
+    --shadow-md: 0 4px 10px rgba(20,20,19,0.08);
+    --shadow-lg: 0 12px 28px rgba(20,20,19,0.12);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 56px 24px 96px;
+    background: var(--ivory);
+    color: var(--slate);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 900px; margin: 0 auto; }
+
+  h1 { font-family: var(--serif); font-weight: 500; font-size: 40px;
+       letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 6px; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 26px;
+       letter-spacing: -0.01em; margin: 0 0 8px; }
+
+  .eyebrow { font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+             letter-spacing: 0.08em; color: var(--gray-500); margin-bottom: 12px; }
+  .sub { color: var(--gray-500); font-size: 14px; margin: 6px 0 0; }
+
+  section { margin-bottom: 56px; }
+  hr.rule { border: none; border-top: 1px solid var(--gray-300); margin: 0 0 28px; }
+
+  /* Sample component: card */
+  .card { background: var(--white); border: var(--border);
+          border-radius: var(--radius-panel); padding: 22px 24px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header style="margin-bottom:48px">
+    <div class="eyebrow">Category · Subtitle</div>
+    <h1>Document title</h1>
+    <p class="sub">A short muted description of what this page covers.</p>
+  </header>
+
+  <section>
+    <h2>Section heading</h2>
+    <hr class="rule">
+    <div class="card">
+      <p style="margin:0;color:var(--gray-700)">
+        Replace this with real content. Build the rest of the page from the
+        component vocabulary in <code>references/components.md</code>.
+      </p>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
