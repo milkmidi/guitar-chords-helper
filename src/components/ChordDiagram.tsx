@@ -19,16 +19,23 @@ interface Props {
   voicing: Voicing;
   label: string; // 例如 "v1"
   onPlay?: () => void;
+  dragPayload?: string; // 有值時可拖曳（JSON 字串，直接放進 dataTransfer）
 }
 
-export default function ChordDiagram({ voicing, label, onPlay }: Props) {
+export default function ChordDiagram({ voicing, label, onPlay, dragPayload }: Props) {
   const { frets, fingers, baseFret, barres } = voicing;
   return (
     <button
       type="button"
       onClick={onPlay}
-      aria-label={`播放按法 ${label}`}
+      aria-label={onPlay ? `播放按法 ${label}` : label}
       className={`chord-diagram ${onPlay ? "is-playable" : ""}`}
+      draggable={dragPayload != null}
+      onDragStart={
+        dragPayload != null
+          ? (e) => e.dataTransfer.setData("application/json", dragPayload)
+          : undefined
+      }
     >
       <p className="diagram-label">{label}</p>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} width={WIDTH * 1.2} height={HEIGHT * 1.2}>
