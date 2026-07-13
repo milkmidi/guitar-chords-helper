@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { FRET_COUNT, FRETBOARD, type FretPosition } from "../lib/fretboard";
 
 const NUT_X = 70;
@@ -78,13 +79,14 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
             {f}
           </text>
         ))}
-        {activePositions.map((p) => {
+        {activePositions.map((p, i) => {
           const isRoot = p.chroma === rootChroma;
           return (
             <g
               key={`${p.string}-${p.fret}`}
               onClick={onNotePlay ? () => onNotePlay(p) : undefined}
-              className={onNotePlay ? "fret-note is-playable" : "fret-note"}
+              className={onNotePlay ? "fret-note pop-in is-playable" : "fret-note pop-in"}
+              style={{ "--i": i } as CSSProperties}
             >
               <circle
                 cx={fretCenterX(p.fret)}
@@ -96,7 +98,7 @@ export default function Fretboard({ chordChromas, rootChroma, noteLabels, onNote
                 x={fretCenterX(p.fret)}
                 y={stringY(p.string) + 4}
                 textAnchor="middle"
-                className="note-circle-label"
+                className={isRoot ? "note-circle-label root" : "note-circle-label chord"}
               >
                 {noteLabels.get(p.chroma) ?? ""}
               </text>

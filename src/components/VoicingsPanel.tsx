@@ -12,10 +12,7 @@ export default function VoicingsPanel({ chordName, voicings, onPlay }: Props) {
   return (
     <section className="content-section" aria-labelledby="voicings-title">
       <div className="section-heading">
-        <div>
-          <div className="eyebrow">03 · Play a voicing</div>
-          <h2 id="voicings-title">{chordName} 常用按法</h2>
-        </div>
+        <h2 id="voicings-title">{chordName} 常用按法</h2>
         <p className="section-note">點擊卡片播放刷弦</p>
       </div>
       <div className="voicings-list">
