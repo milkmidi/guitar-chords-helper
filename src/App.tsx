@@ -1,10 +1,14 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import ChordNotesDisplay from "./components/ChordNotesDisplay";
 import ChordTypeSelector from "./components/ChordTypeSelector";
 import Fretboard from "./components/Fretboard";
 import KeySelector from "./components/KeySelector";
+import TrackControls from "./components/TrackControls";
+import TrackPanel from "./components/TrackPanel";
 import VoicingsPanel from "./components/VoicingsPanel";
+import { useTrackPlayer } from "./hooks/useTrackPlayer";
 import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "./lib/chords";
+import { MEASURE_COUNT, type Track, type TrackCell } from "./lib/player";
 import { getVoicings } from "./lib/voicings";
 import { playNote, playStrum } from "./lib/audio";
 
@@ -22,6 +26,18 @@ export default function App() {
 
   const voicings = useMemo(() => getVoicings(selectedKey, chordType), [selectedKey, chordType]);
   const chordId = `${selectedKey}-${chordType}`;
+
+  const [track, setTrack] = useState<Track>(() => Array(MEASURE_COUNT).fill(null));
+  const [bpm, setBpm] = useState(90);
+  const { isPlaying, currentMeasure, play, stop } = useTrackPlayer(track, bpm);
+
+  const handleDropCell = useCallback((index: number, cell: TrackCell) => {
+    setTrack((prev) => prev.map((c, i) => (i === index ? cell : c)));
+  }, []);
+
+  const handleClearCell = useCallback((index: number) => {
+    setTrack((prev) => prev.map((c, i) => (i === index ? null : c)));
+  }, []);
 
   return (
     <main className="page">
@@ -74,6 +90,20 @@ export default function App() {
         voicings={voicings}
         onPlay={(voicing) => playStrum(voicing.midi)}
       />
+
+      <section className="content-section" aria-labelledby="track-title">
+        <div className="section-heading">
+          <h2 id="track-title">音軌</h2>
+          <p className="section-note">把上方按法卡片拖進小節，按 Play 循環播放</p>
+        </div>
+        <TrackControls bpm={bpm} isPlaying={isPlaying} onBpmChange={setBpm} onPlay={play} onStop={stop} />
+        <TrackPanel
+          track={track}
+          currentMeasure={currentMeasure}
+          onDropCell={handleDropCell}
+          onClearCell={handleClearCell}
+        />
+      </section>
 
       <footer className="page-footer">
         <span>Guitar Chords Helper</span>
