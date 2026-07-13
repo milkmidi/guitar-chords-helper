@@ -238,6 +238,118 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 .diagram-finger-number { fill: var(--bg); font-size: 10px; font-weight: 700; }
 .diagram-string-label { font-size: 9px; }
 
+/* ---------- Track sequencer ---------- */
+
+.track-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: 4px 4px 0 var(--edge);
+}
+
+.bpm-control { display: flex; flex: 1 1 260px; align-items: center; gap: 12px; }
+.bpm-label { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+.bpm-slider { flex: 1; accent-color: var(--accent); }
+.bpm-value {
+  min-width: 3ch;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.transport-buttons { display: flex; gap: 10px; }
+
+.transport-button {
+  min-height: 44px;
+  padding: 0 24px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 0.15s ease, transform 0.2s var(--spring), box-shadow 0.2s ease;
+}
+
+.transport-button.is-play:not(:disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 3px 3px 0 var(--edge);
+}
+
+.transport-button:not(:disabled):hover { transform: translateY(-2px); }
+.transport-button:not(:disabled):active { transform: scale(0.93); }
+.transport-button:disabled { cursor: default; opacity: 0.4; box-shadow: none; }
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 14px;
+  overflow-x: auto;
+  padding: 6px;
+}
+
+.track-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 12px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.track-cell.is-empty { border-style: dashed; border-color: var(--line); background: transparent; }
+.track-cell.is-drag-over { border-color: var(--accent); border-style: solid; background: var(--chip); }
+.track-cell.is-current { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+
+.track-cell-number {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.track-cell-hint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+
+/* 音軌內的縮圖卡片不需要陰影與入場動畫 */
+.track-cell .chord-diagram { box-shadow: none; border: none; padding: 4px; animation: none; }
+
+.track-cell-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid var(--edge);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.track-cell-clear:hover { background: var(--accent); color: var(--on-accent); }
+
 /* ---------- Footer ---------- */
 
 .page-footer {
