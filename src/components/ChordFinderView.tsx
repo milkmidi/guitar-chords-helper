@@ -7,6 +7,7 @@ import TrackControls from "./TrackControls";
 import TrackPanel from "./TrackPanel";
 import VoicingsPanel from "./VoicingsPanel";
 import { useTrackPlayer } from "../hooks/useTrackPlayer";
+import { useRootShortcut } from "../hooks/useRootShortcut";
 import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "../lib/chords";
 import { MEASURE_COUNT, type Track, type TrackCell } from "../lib/player";
 import { getVoicings } from "../lib/voicings";
@@ -14,6 +15,7 @@ import { playNote, playStrum } from "../lib/audio";
 
 export default function ChordFinderView() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
+  useRootShortcut(setSelectedKey);
   const [chordType, setChordType] = useState<ChordTypeId>("major");
 
   const chord = useMemo(() => getChordInfo(selectedKey, chordType), [selectedKey, chordType]);
@@ -51,7 +53,9 @@ export default function ChordFinderView() {
 
       <section className="controls" aria-label="建立和弦">
         <div className="selector-group">
-          <p className="field-label">根音</p>
+          <p className="field-label">
+            根音 <span className="field-hint">按 1–7 = C–B</span>
+          </p>
           <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
         </div>
         <div className="selector-group">

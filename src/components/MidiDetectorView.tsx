@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMidiInput } from "../hooks/useMidiInput";
+import { useRootShortcut } from "../hooks/useRootShortcut";
 import { toGlyph, type CategoryFilter } from "../lib/chordCatalog";
 import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDetect";
 import { Note } from "tonal";
@@ -17,6 +18,7 @@ export default function MidiDetectorView() {
   const { litMidis, lampState, statusText, deviceName, started, start } = useMidiInput();
 
   const [selectedKey, setSelectedKey] = useState<Key>("C");
+  useRootShortcut(setSelectedKey);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [symbol, setSymbol] = useState("major");
 
@@ -60,7 +62,9 @@ export default function MidiDetectorView() {
 
       <section className="controls" aria-label="選擇和弦">
         <div className="selector-group">
-          <p className="field-label">根音</p>
+          <p className="field-label">
+            根音 <span className="field-hint">按 1–7 = C–B</span>
+          </p>
           <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
         </div>
         <div className="selector-group">
