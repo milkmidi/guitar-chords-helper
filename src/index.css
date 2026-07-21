@@ -386,6 +386,28 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 
 .midi-status { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
 
+/* chord catalog: category filter + filtered chord buttons */
+.chord-catalog { display: flex; flex-direction: column; gap: 12px; }
+.category-filter { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.category-button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.2s var(--spring);
+}
+.category-button:hover { border-color: var(--edge); color: var(--ink); transform: translateY(-1px); }
+.category-button:active { transform: scale(0.95); }
+.category-button.is-active { border-color: var(--edge); background: var(--ink); color: var(--bg); }
+
 .lamp {
   width: 11px;
   height: 11px;

@@ -1,29 +1,43 @@
 import { useMemo, useState } from "react";
 import { useMidiInput } from "../hooks/useMidiInput";
-import { analyze, chordTonesToMidi } from "../lib/chordDetect";
-import { getChordInfo, type ChordTypeId, type Key } from "../lib/chords";
+import { toGlyph, type CategoryFilter } from "../lib/chordCatalog";
+import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDetect";
+import { getChordBySymbol, type Key } from "../lib/chords";
+import ChordCatalogSelector from "./ChordCatalogSelector";
 import ChordReadout from "./ChordReadout";
-import ChordTypeSelector from "./ChordTypeSelector";
 import KeySelector from "./KeySelector";
 import MidiKeyboard from "./MidiKeyboard";
+
+const octaveOf = (m: number) => Math.floor(m / 12) - 1;
 
 export default function MidiDetectorView() {
   const { litMidis, lampState, statusText, deviceName, started, start } = useMidiInput();
 
   const [selectedKey, setSelectedKey] = useState<Key>("C");
-  const [chordType, setChordType] = useState<ChordTypeId>("major");
-  const chord = useMemo(() => getChordInfo(selectedKey, chordType), [selectedKey, chordType]);
-  const selectedMidis = useMemo(() => chordTonesToMidi(chord.chromas), [chord]);
+  const [category, setCategory] = useState<CategoryFilter>("all");
+  const [symbol, setSymbol] = useState("major");
 
-  // 有實體 MIDI 輸入時以彈奏為準，否則顯示選取的和弦
+  const info = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
+  const selectedMidis = useMemo(() => chordTonesToMidi(info.chromas), [info]);
+
+  // 有實體 MIDI 輸入時以彈奏為準（用偵測器 analyze 反推），否則顯示選取的和弦（直接用 tonal 命名）
   const isLive = litMidis.length > 0;
   const displayMidis = isLive ? litMidis : selectedMidis;
-  // 選取的和弦沿用選擇器的升降拼法（D# 顯示 D♯m 而非等音 E♭m）；彈奏時用偵測器自己的拼法。
-  // 讀出面板一律用 ♯ 字型符號，故把選擇器的 "#" 正規化為 "♯"。
-  const result = useMemo(() => {
-    const hint = isLive ? undefined : { pc: chord.rootChroma, name: selectedKey.replace("#", "♯") };
-    return analyze(displayMidis, hint);
-  }, [displayMidis, isLive, chord.rootChroma, selectedKey]);
+  const result = useMemo<DetectionResult | null>(() => {
+    if (isLive) return analyze(litMidis);
+    // tonal 大三和弦 symbol 為 "CM"，慣例顯示為 "C"
+    const rawName = info.symbol === `${selectedKey}M` ? selectedKey : info.symbol;
+    // 有些和弦（7♭5、13♯11）tonal 給不出描述性全名（只有根音），改用「根音 + 符號」
+    const trimmed = info.fullName.trim();
+    const full = trimmed && trimmed !== selectedKey ? info.fullName : `${selectedKey} ${toGlyph(symbol)}`;
+    return {
+      name: toGlyph(rawName),
+      full,
+      chips: info.notes.map((n, i) => toGlyph(n) + octaveOf(selectedMidis[i])),
+      slash: null,
+      matches: [],
+    };
+  }, [isLive, litMidis, info, selectedMidis, selectedKey, symbol]);
 
   return (
     <section className="midi-detector" aria-labelledby="midi-title">
@@ -42,7 +56,12 @@ export default function MidiDetectorView() {
         </div>
         <div className="selector-group">
           <p className="field-label">和弦類型</p>
-          <ChordTypeSelector selected={chordType} onSelect={setChordType} />
+          <ChordCatalogSelector
+            category={category}
+            symbol={symbol}
+            onCategoryChange={setCategory}
+            onSymbolChange={setSymbol}
+          />
         </div>
       </section>
 
@@ -61,9 +80,9 @@ export default function MidiDetectorView() {
       </div>
 
       <p className="section-note midi-hint">
-        用上方選擇器挑和弦，鍵盤會即時點亮該和弦音；接上 MIDI 鍵盤按 Start 彈奏則以實際彈奏為準。
-        音名會依和弦品質做正確的升降記法（例如 C°7 → C–E♭–G♭–B♭♭），對稱和弦與等音組（如 C6 = Am7）
-        會在上方列出其他根音的命名。需要用 <b>Chrome / Edge</b> 才能使用 MIDI。
+        用上方分類與和弦鈕挑和弦，鍵盤會即時點亮該和弦音；接上 MIDI 鍵盤按 Start 彈奏則以實際彈奏為準
+        （彈奏時會用偵測器辨識，對稱和弦與等音組如 C6 = Am7 會列出其他根音的命名）。需要用
+        <b> Chrome / Edge</b> 才能使用 MIDI。
       </p>
     </section>
   );
