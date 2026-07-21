@@ -6,4 +6,7 @@ const isProduction = process.env.NODE_ENV === "production";
 export default defineConfig({
   base: isProduction ? "/guitar-chords-helper/" : "/",
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 3000,
+  }
 });

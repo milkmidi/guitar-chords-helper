@@ -1,5 +1,5 @@
 import voicingsData from "../data/voicings.json";
-import type { ChordTypeId, Key } from "./chords";
+import type { Key } from "./chords";
 
 export interface Voicing {
   frets: number[]; // 6 元素，低音 E → 高音 E；-1 悶音、0 空弦、其餘相對 baseFret
@@ -12,6 +12,7 @@ export interface Voicing {
 
 const data = voicingsData as Record<string, Record<string, Voicing[]>>;
 
-export function getVoicings(key: Key, typeId: ChordTypeId): Voicing[] {
-  return data[key]?.[typeId] ?? [];
+// symbol 為 catalog 的和弦符號（例如 "6/9"、"m7"）。無吉他指法的和弦（m13、13#11）回傳 []。
+export function getVoicings(key: Key, symbol: string): Voicing[] {
+  return data[key]?.[symbol] ?? [];
 }

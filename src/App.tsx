@@ -1,37 +1,39 @@
 import { useMemo, useState } from "react";
+import ChordCatalogSelector from "./components/ChordCatalogSelector";
 import ChordNotesDisplay from "./components/ChordNotesDisplay";
-import ChordTypeSelector from "./components/ChordTypeSelector";
-import Fretboard from "./components/Fretboard";
+import GuitarSection from "./components/GuitarSection";
 import KeySelector from "./components/KeySelector";
-import VoicingsPanel from "./components/VoicingsPanel";
-import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "./lib/chords";
-import { getVoicings } from "./lib/voicings";
-import { playNote, playStrum } from "./lib/audio";
+import PianoSection from "./components/PianoSection";
+import { useChordCatalog } from "./hooks/useChordCatalog";
+import { useRootShortcut } from "./hooks/useRootShortcut";
+import { CHORD_CATALOG } from "./lib/chordCatalog";
+import { getChordBySymbol, type Key } from "./lib/chords";
 
 export default function App() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
-  const [chordType, setChordType] = useState<ChordTypeId>("major");
+  useRootShortcut(setSelectedKey);
+  const { category, symbol, changeCategory, setSymbol } = useChordCatalog();
 
-  const chord = useMemo(() => getChordInfo(selectedKey, chordType), [selectedKey, chordType]);
-  const typeLabel = CHORD_TYPES.find((t) => t.id === chordType)?.label ?? chordType;
+  const chord = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
+  // 英雄區類型標籤：大三和弦顯示空白（僅 "C"），其餘用 catalog label
+  const typeLabel =
+    symbol === "major" ? "" : (CHORD_CATALOG.find((c) => c.symbol === symbol)?.label ?? symbol);
+  const chordName = `${selectedKey}${typeLabel ? ` ${typeLabel}` : ""}`;
   const noteLabels = useMemo(() => {
     const labels = new Map<number, string>();
     chord.chromas.forEach((chroma, i) => labels.set(chroma, chord.notes[i]));
     return labels;
   }, [chord]);
 
-  const voicings = useMemo(() => getVoicings(selectedKey, chordType), [selectedKey, chordType]);
-  const chordId = `${selectedKey}-${chordType}`;
-
   return (
     <main className="page">
       <header className="masthead">
         <h1>Guitar Chords Helper</h1>
-        <p className="masthead-subtitle">選根音與和弦類型，查看組成音、指板位置與常用按法。</p>
+        <p className="masthead-subtitle">選根音與和弦類型，同時在吉他指板與鋼琴鍵盤上查看。</p>
       </header>
 
       <ChordNotesDisplay
-        key={chordId}
+        key={`${selectedKey}-${symbol}`}
         rootLabel={selectedKey}
         typeLabel={typeLabel}
         notes={chord.notes}
@@ -40,40 +42,34 @@ export default function App() {
 
       <section className="controls" aria-label="建立和弦">
         <div className="selector-group">
-          <p className="field-label">根音</p>
+          <p className="field-label">
+            根音 <span className="field-hint">按 1–7 = C–B</span>
+          </p>
           <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
         </div>
         <div className="selector-group">
-          <p className="field-label">和弦類型</p>
-          <ChordTypeSelector selected={chordType} onSelect={setChordType} />
-        </div>
-      </section>
-
-      <section className="content-section" aria-labelledby="fretboard-title">
-        <div className="section-heading">
-          <h2 id="fretboard-title">指板上的和弦音</h2>
-          <p className="legend">
-            <span className="swatch swatch-root" aria-hidden="true" />
-            根音
-            <span className="swatch swatch-tone" aria-hidden="true" />
-            和弦音
+          <p className="field-label">
+            和弦類型 <span className="field-hint">←/→ 切換，↑/↓ 分類</span>
           </p>
+          <ChordCatalogSelector
+            category={category}
+            symbol={symbol}
+            onCategoryChange={changeCategory}
+            onSymbolChange={setSymbol}
+          />
         </div>
-        <Fretboard
-          key={chordId}
-          chordChromas={chord.chromas}
-          rootChroma={chord.rootChroma}
-          noteLabels={noteLabels}
-          onNotePlay={(position) => playNote(position.note)}
-        />
       </section>
 
-      <VoicingsPanel
-        key={`voicings-${chordId}`}
-        chordName={`${selectedKey} ${typeLabel}`}
-        voicings={voicings}
-        onPlay={(voicing) => playStrum(voicing.midi)}
-      />
+      <div className="instrument-grid">
+        <GuitarSection
+          selectedKey={selectedKey}
+          symbol={symbol}
+          chord={chord}
+          chordName={chordName}
+          noteLabels={noteLabels}
+        />
+        <PianoSection selectedKey={selectedKey} symbol={symbol} chord={chord} />
+      </div>
 
       <footer className="page-footer">
         <span>Guitar Chords Helper</span>

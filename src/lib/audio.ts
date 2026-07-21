@@ -37,6 +37,11 @@ export function playNote(note: string, duration = 0.8): void {
   playFreq(audio, freq, audio.currentTime, duration, 0.25);
 }
 
+// 音軌排程以 audio 時鐘為基準，避免 setTimeout 累積漂移
+export function getAudioTime(): number {
+  return ensureContext().currentTime;
+}
+
 const STRUM_DELAY = 0.06;
 
 export function playStrum(midi: number[], duration = 1.2): void {

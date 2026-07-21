@@ -13,6 +13,7 @@ export default function VoicingsPanel({ chordName, voicings, onPlay }: Props) {
     <section className="content-section" aria-labelledby="voicings-title">
       <div className="section-heading">
         <h2 id="voicings-title">{chordName} 常用按法</h2>
+        {/* 音軌隱藏中（GuitarSection 的 SHOW_TRACK）；重新啟用時把「，或拖曳到下方音軌」補回 */}
         <p className="section-note">點擊卡片播放刷弦</p>
       </div>
       <div className="voicings-list">
@@ -22,6 +23,7 @@ export default function VoicingsPanel({ chordName, voicings, onPlay }: Props) {
             voicing={voicing}
             label={`v${i + 1}`}
             onPlay={onPlay ? () => onPlay(voicing) : undefined}
+            dragPayload={JSON.stringify({ chordName: `${chordName} v${i + 1}`, voicing })}
           />
         ))}
       </div>

@@ -122,9 +122,18 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 
 /* ---------- Controls ---------- */
 
-.controls { margin: 36px 0 8px; }
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 24px 0 8px;
+  padding: 16px 0 14px;
+  background: var(--bg);
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
+}
 .selector-group + .selector-group { margin-top: 20px; }
 .field-label { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+.field-hint { color: var(--muted); font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: 0.03em; }
 .key-selector, .type-selector { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .key-button, .type-button {
@@ -237,6 +246,334 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 .diagram-open-string { fill: none; stroke: var(--ink); }
 .diagram-finger-number { fill: var(--bg); font-size: 10px; font-weight: 700; }
 .diagram-string-label { font-size: 9px; }
+
+/* ---------- Track sequencer ---------- */
+
+.track-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: 4px 4px 0 var(--edge);
+}
+
+.bpm-control { display: flex; flex: 1 1 260px; align-items: center; gap: 12px; }
+.bpm-label { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+.bpm-slider { flex: 1; accent-color: var(--accent); }
+.bpm-value {
+  min-width: 3ch;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.transport-buttons { display: flex; gap: 10px; }
+
+.transport-button {
+  min-height: 44px;
+  padding: 0 24px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 0.15s ease, transform 0.2s var(--spring), box-shadow 0.2s ease;
+}
+
+.transport-button.is-play:not(:disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 3px 3px 0 var(--edge);
+}
+
+.transport-button:not(:disabled):hover { transform: translateY(-2px); }
+.transport-button:not(:disabled):active { transform: scale(0.93); }
+.transport-button:disabled { cursor: default; opacity: 0.4; box-shadow: none; }
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 14px;
+  overflow-x: auto;
+  padding: 6px;
+}
+
+.track-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 12px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.track-cell.is-empty { border-style: dashed; border-color: var(--line); background: transparent; }
+.track-cell.is-drag-over { border-color: var(--accent); border-style: solid; background: var(--chip); }
+.track-cell.is-current { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+
+.track-cell-number {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.track-cell-hint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+
+/* 音軌內的縮圖卡片不需要陰影與入場動畫 */
+.track-cell .chord-diagram { box-shadow: none; border: none; padding: 4px; animation: none; }
+
+.track-cell-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid var(--edge);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.track-cell-clear:hover { background: var(--accent); color: var(--on-accent); }
+
+/* ---------- Instrument grid (guitar | piano) ---------- */
+
+/* 吉他與鋼琴上下堆疊成一整排，維持在 .page 的寬度內。 */
+.instrument-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  margin-top: 48px;
+}
+
+.instrument-col { min-width: 0; }
+/* 欄內第一個區塊不要頂端大留白（content-section 預設 margin-top: 56px） */
+.instrument-col > .content-section:first-child,
+.instrument-col > .section-heading:first-child { margin-top: 0; }
+.instrument-col > .section-heading:first-child { margin-bottom: 20px; }
+
+/* ---------- MIDI detector ---------- */
+
+.midi-status { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+
+/* chord catalog: category filter + filtered chord buttons */
+.chord-catalog { display: flex; flex-direction: column; gap: 12px; }
+.category-filter { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.category-button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.2s var(--spring);
+}
+.category-button:hover { border-color: var(--edge); color: var(--ink); transform: translateY(-1px); }
+.category-button:active { transform: scale(0.95); }
+.category-button.is-active { border-color: var(--edge); background: var(--ink); color: var(--bg); }
+
+.lamp {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.lamp-on { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.lamp-err { background: #d1493c; box-shadow: 0 0 10px #d1493c; }
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  margin-bottom: 20px;
+  padding: 34px 26px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-block);
+  background: var(--surface);
+  box-shadow: 6px 6px 0 var(--edge);
+  text-align: center;
+}
+
+.chord-name {
+  min-height: 0.95em;
+  font-family: var(--display);
+  font-size: clamp(48px, 11vw, 104px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--accent-deep);
+}
+.chord-name.is-dim { color: var(--muted); }
+
+.chord-full {
+  min-height: 1em;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.notes-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.note-chip {
+  padding: 5px 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--chip);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.alts.show {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--line);
+}
+.alts-caption { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; }
+.alt-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.alt-chip {
+  padding: 4px 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.alt-chip.primary { border-color: var(--edge); background: var(--accent); color: var(--on-accent); }
+
+/* 五線譜：固定淺色「紙張」底，VexFlow 預設黑色在亮/暗模式下都清楚 */
+.staff-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: #f7f5ee;
+  box-shadow: 4px 4px 0 var(--edge);
+  overflow-x: auto;
+  font: inherit;
+  color: inherit;
+}
+button.staff-wrap.is-playable { cursor: pointer; transition: transform 0.2s var(--spring), box-shadow 0.2s ease; }
+button.staff-wrap.is-playable:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--edge); }
+button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--edge); }
+.staff { display: flex; justify-content: center; }
+.staff svg { display: block; }
+.staff-fallback { align-items: center; min-height: 250px; color: #8a8371; font-family: var(--mono); font-size: 13px; }
+
+.keyboard-wrap {
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 2px solid var(--edge);
+  border-radius: var(--r-card);
+  background: var(--board);
+  box-shadow: 4px 4px 0 var(--edge);
+  overflow-x: auto;
+}
+
+.keyboard { position: relative; display: flex; height: 190px; min-width: 760px; }
+
+.wkey {
+  position: relative;
+  flex: 1;
+  padding: 0;
+  border: 1px solid #1b1a17;
+  border-radius: 0 0 5px 5px;
+  background: linear-gradient(180deg, #f2efe6, #ddd8ca);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  appearance: none;
+  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
+}
+.wkey.lit {
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+  box-shadow: 0 0 16px var(--accent), 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+.wkey:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); }
+
+.bkey {
+  position: absolute;
+  top: 0;
+  height: 60%;
+  padding: 0;
+  border: 1px solid #000;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(180deg, #2c2921, #14130f);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+  z-index: 2;
+  cursor: pointer;
+  appearance: none;
+  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
+}
+.bkey.lit {
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+  box-shadow: 0 0 14px var(--accent);
+}
+.bkey:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
+
+.klabel {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  color: #8a8371;
+  font-family: var(--mono);
+  font-size: 9px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.midi-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.midi-device { color: var(--muted); font-size: 13px; }
+.midi-device b { color: var(--ink); font-weight: 700; }
+.midi-source { color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; }
+.midi-hint { margin-top: 18px; line-height: 1.7; }
 
 /* ---------- Footer ---------- */
 
