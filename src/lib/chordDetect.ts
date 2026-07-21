@@ -117,7 +117,28 @@ export interface DetectionResult {
   unknown?: boolean;
 }
 
-export function analyze(midiNotes: number[]): DetectionResult | null {
+// 把一組和弦音（pitch-class 0–11，根音在前）排成鍵盤上的 MIDI 密集排列（由低到高）。
+// baseMidi 為根音的參考音（預設 C4=60）；每個後續音若不高於前一音就往上加八度。
+export function chordTonesToMidi(chromas: number[], baseMidi = 60): number[] {
+  const notes: number[] = [];
+  let prev = -1;
+  for (const chroma of chromas) {
+    let m = baseMidi + (((chroma % 12) + 12) % 12);
+    while (m <= prev) m += 12;
+    notes.push(m);
+    prev = m;
+  }
+  return notes;
+}
+
+// 根音拼法提示：當主要判讀的根音等於 pc 時，改用此拼法命名與拼寫（例如選了 D# 就顯示
+// D#m 而非等音的 E♭m）。live MIDI 彈奏時不傳，仍用偵測器自己的等音偏好。
+export interface RootHint {
+  pc: number;
+  name: string; // 例如 "D#"
+}
+
+export function analyze(midiNotes: number[], rootHint?: RootHint): DetectionResult | null {
   if (midiNotes.length === 0) return null;
   const sorted = [...midiNotes].sort((a, b) => a - b);
   const bassPc = sorted[0] % 12;
@@ -160,8 +181,14 @@ export function analyze(midiNotes: number[]): DetectionResult | null {
     else if (c.isBass === primary.isBass && c.tp.set.length > primary.tp.set.length) primary = c;
   }
 
+  // 主要根音的拼法：有提示且對得上就用提示的拼法，否則用偵測器的等音偏好
+  const useHint = rootHint != null && rootHint.pc === primary.root;
+  const primaryRootName = useHint ? rootHint.name : ROOT_NAMES[primary.root];
+  const rootLi = useHint
+    ? (LETTERS as readonly string[]).indexOf(rootHint.name[0])
+    : ROOT_LETTER_IDX[primary.root];
+
   // 依主要和弦拼寫各音名
-  const rootLi = ROOT_LETTER_IDX[primary.root];
   const pcToName: Record<number, string> = {};
   primary.tp.t.forEach(([semi, deg]) => {
     const s = spellTone(primary.root, rootLi, semi, deg);
@@ -172,17 +199,17 @@ export function analyze(midiNotes: number[]): DetectionResult | null {
     return (pcToName[pc] || pcName(pc)) + octaveOf(m);
   });
 
-  const primaryName = ROOT_NAMES[primary.root] + primary.tp.sym;
+  const primaryName = primaryRootName + primary.tp.sym;
   const slash = primary.root !== bassPc ? ROOT_NAMES[bassPc] : null;
 
   const altNames: AltName[] = matches.map((c) => ({
-    label: ROOT_NAMES[c.root] + c.tp.sym,
+    label: (c === primary ? primaryRootName : ROOT_NAMES[c.root]) + c.tp.sym,
     primary: c === primary,
   }));
 
   return {
     name: primaryName,
-    full: ROOT_NAMES[primary.root] + " " + primary.tp.full,
+    full: primaryRootName + " " + primary.tp.full,
     chips,
     slash,
     matches: altNames,
