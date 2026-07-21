@@ -1,6 +1,9 @@
+import { lazy, Suspense } from "react";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import ChordFinderView from "./components/ChordFinderView";
-import MidiDetectorView from "./components/MidiDetectorView";
+
+// MIDI 分頁才需要 VexFlow（較大），延後載入讓預設的吉他分頁初始包更輕
+const MidiDetectorView = lazy(() => import("./components/MidiDetectorView"));
 
 const TABS: { to: string; label: string }[] = [
   { to: "/chords", label: "和弦查詢" },
@@ -27,11 +30,13 @@ export default function App() {
         ))}
       </nav>
 
-      <Routes>
-        <Route path="/chords" element={<ChordFinderView />} />
-        <Route path="/midi" element={<MidiDetectorView />} />
-        <Route path="*" element={<Navigate to="/chords" replace />} />
-      </Routes>
+      <Suspense fallback={<p className="section-note">載入中…</p>}>
+        <Routes>
+          <Route path="/chords" element={<ChordFinderView />} />
+          <Route path="/midi" element={<MidiDetectorView />} />
+          <Route path="*" element={<Navigate to="/chords" replace />} />
+        </Routes>
+      </Suspense>
 
       <footer className="page-footer">
         <span>Guitar Chords Helper</span>

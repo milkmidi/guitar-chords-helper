@@ -7,6 +7,7 @@ import ChordCatalogSelector from "./ChordCatalogSelector";
 import ChordReadout from "./ChordReadout";
 import KeySelector from "./KeySelector";
 import MidiKeyboard from "./MidiKeyboard";
+import Staff from "./Staff";
 
 const octaveOf = (m: number) => Math.floor(m / 12) - 1;
 
@@ -39,6 +40,12 @@ export default function MidiDetectorView() {
     };
   }, [isLive, litMidis, info, selectedMidis, selectedKey, symbol]);
 
+  // 五線譜音符：把顯示中的 MIDI 與（同源、平行的）拼音音名併起來
+  const staffNotes = useMemo(
+    () => (result ? displayMidis.map((midi, i) => ({ midi, name: result.chips[i] })) : []),
+    [displayMidis, result],
+  );
+
   return (
     <section className="midi-detector" aria-labelledby="midi-title">
       <div className="section-heading">
@@ -66,6 +73,8 @@ export default function MidiDetectorView() {
       </section>
 
       <ChordReadout result={result} placeholder="選擇和弦或彈奏 MIDI 鍵盤" />
+
+      <Staff notes={staffNotes} />
 
       <MidiKeyboard litMidis={displayMidis} />
 
