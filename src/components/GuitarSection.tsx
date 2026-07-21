@@ -9,6 +9,9 @@ import type { ChordSymbolInfo, Key } from "../lib/chords";
 import { MEASURE_COUNT, type Track, type TrackCell } from "../lib/player";
 import { getVoicings } from "../lib/voicings";
 
+// 音軌暫時隱藏；改回 true 即可重新啟用（相關狀態/邏輯都保留著）。
+const SHOW_TRACK = false;
+
 interface Props {
   selectedKey: Key;
   symbol: string;
@@ -63,19 +66,21 @@ export default function GuitarSection({ selectedKey, symbol, chord, chordName, n
         onPlay={(voicing) => playStrum(voicing.midi)}
       />
 
-      <section className="content-section" aria-labelledby="track-title">
-        <div className="section-heading">
-          <h2 id="track-title">音軌</h2>
-          <p className="section-note">把上方按法卡片拖進小節，按 Play 循環播放</p>
-        </div>
-        <TrackControls bpm={bpm} isPlaying={isPlaying} onBpmChange={setBpm} onPlay={play} onStop={stop} />
-        <TrackPanel
-          track={track}
-          currentMeasure={currentMeasure}
-          onDropCell={handleDropCell}
-          onClearCell={handleClearCell}
-        />
-      </section>
+      {SHOW_TRACK && (
+        <section className="content-section" aria-labelledby="track-title">
+          <div className="section-heading">
+            <h2 id="track-title">音軌</h2>
+            <p className="section-note">把上方按法卡片拖進小節，按 Play 循環播放</p>
+          </div>
+          <TrackControls bpm={bpm} isPlaying={isPlaying} onBpmChange={setBpm} onPlay={play} onStop={stop} />
+          <TrackPanel
+            track={track}
+            currentMeasure={currentMeasure}
+            onDropCell={handleDropCell}
+            onClearCell={handleClearCell}
+          />
+        </section>
+      )}
     </section>
   );
 }
