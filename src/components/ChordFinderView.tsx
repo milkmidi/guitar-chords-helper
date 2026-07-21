@@ -1,15 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
+import ChordCatalogSelector from "./ChordCatalogSelector";
 import ChordNotesDisplay from "./ChordNotesDisplay";
-import ChordTypeSelector from "./ChordTypeSelector";
 import Fretboard from "./Fretboard";
 import KeySelector from "./KeySelector";
 import TrackControls from "./TrackControls";
 import TrackPanel from "./TrackPanel";
 import VoicingsPanel from "./VoicingsPanel";
-import { useTrackPlayer } from "../hooks/useTrackPlayer";
+import { useChordCatalog } from "../hooks/useChordCatalog";
 import { useRootShortcut } from "../hooks/useRootShortcut";
-import { cycleIndex, useArrowCycle } from "../hooks/useArrowCycle";
-import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "../lib/chords";
+import { useTrackPlayer } from "../hooks/useTrackPlayer";
+import { CHORD_CATALOG } from "../lib/chordCatalog";
+import { getChordBySymbol, type Key } from "../lib/chords";
 import { MEASURE_COUNT, type Track, type TrackCell } from "../lib/player";
 import { getVoicings } from "../lib/voicings";
 import { playNote, playStrum } from "../lib/audio";
@@ -17,24 +18,21 @@ import { playNote, playStrum } from "../lib/audio";
 export default function ChordFinderView() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
   useRootShortcut(setSelectedKey);
-  const [chordType, setChordType] = useState<ChordTypeId>("major");
-  const cycleType = (dir: number) =>
-    setChordType((prev) => {
-      const i = CHORD_TYPES.findIndex((t) => t.id === prev);
-      return CHORD_TYPES[cycleIndex(i, CHORD_TYPES.length, dir)].id;
-    });
-  useArrowCycle({ onLeft: () => cycleType(-1), onRight: () => cycleType(1) });
+  const { category, symbol, changeCategory, setSymbol } = useChordCatalog();
 
-  const chord = useMemo(() => getChordInfo(selectedKey, chordType), [selectedKey, chordType]);
-  const typeLabel = CHORD_TYPES.find((t) => t.id === chordType)?.label ?? chordType;
+  const chord = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
+  // 英雄區類型標籤：大三和弦顯示空白（僅 "C"），其餘用 catalog label（如 "6/9"、"m7"）
+  const typeLabel =
+    symbol === "major" ? "" : (CHORD_CATALOG.find((c) => c.symbol === symbol)?.label ?? symbol);
+  const chordName = `${selectedKey}${typeLabel ? ` ${typeLabel}` : ""}`;
   const noteLabels = useMemo(() => {
     const labels = new Map<number, string>();
     chord.chromas.forEach((chroma, i) => labels.set(chroma, chord.notes[i]));
     return labels;
   }, [chord]);
 
-  const voicings = useMemo(() => getVoicings(selectedKey, chordType), [selectedKey, chordType]);
-  const chordId = `${selectedKey}-${chordType}`;
+  const voicings = useMemo(() => getVoicings(selectedKey, symbol), [selectedKey, symbol]);
+  const chordId = `${selectedKey}-${symbol}`;
 
   const [track, setTrack] = useState<Track>(() => Array(MEASURE_COUNT).fill(null));
   const [bpm, setBpm] = useState(90);
@@ -67,9 +65,14 @@ export default function ChordFinderView() {
         </div>
         <div className="selector-group">
           <p className="field-label">
-            和弦類型 <span className="field-hint">←/→ 切換</span>
+            和弦類型 <span className="field-hint">←/→ 切換，↑/↓ 分類</span>
           </p>
-          <ChordTypeSelector selected={chordType} onSelect={setChordType} />
+          <ChordCatalogSelector
+            category={category}
+            symbol={symbol}
+            onCategoryChange={changeCategory}
+            onSymbolChange={setSymbol}
+          />
         </div>
       </section>
 
@@ -94,7 +97,7 @@ export default function ChordFinderView() {
 
       <VoicingsPanel
         key={`voicings-${chordId}`}
-        chordName={`${selectedKey} ${typeLabel}`}
+        chordName={chordName}
         voicings={voicings}
         onPlay={(voicing) => playStrum(voicing.midi)}
       />

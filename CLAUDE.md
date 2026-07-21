@@ -15,7 +15,7 @@ npm run extract-voicings  # regenerate src/data/voicings.json from chords-db (se
 
 ## What this is
 
-A guitar-learning SPA (Vite + React 19 + TypeScript + Tailwind CSS v4 + tonal): pick a key (C…B) and chord type (major/minor/7/maj7/m7/sus2/sus4/dim/aug), and the app shows all chord-tone positions on a horizontal SVG fretboard, a chord-notes line, and vertical voicing diagrams (v1–vN) below. Clicking a fretboard note plays that pitch; clicking a voicing diagram strums the chord — both via Web Audio synthesis, no audio files.
+A guitar-learning SPA (Vite + React 19 + TypeScript + Tailwind CSS v4 + tonal), hash-routed into two tabs. **和弦查詢 (ChordFinderView)**: pick a key (C…B) and a chord from a category-filtered catalog (~36 types across Major/Minor/Dominant/Diminished/Augmented/Altered), see chord-tone positions on a horizontal SVG fretboard, a chord-notes line, vertical voicing diagrams (v1–vN), and a track sequencer. **MIDI 偵測器 (MidiDetectorView)**: the same chord catalog drives a piano keyboard + VexFlow grand staff, and live Web MIDI input is analyzed back into chord names. Both tabs share the root selector (KeySelector), the chord catalog selector (ChordCatalogSelector via the `useChordCatalog` hook), and keyboard shortcuts (1–7 roots, ←/→ chord, ↑/↓ category). Clicking a fretboard note / keyboard key plays that pitch; clicking a voicing diagram / the staff strums the chord — all via Web Audio synthesis, no audio files.
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/` — read the spec before extending a feature.
 
@@ -23,13 +23,13 @@ Design specs and implementation plans live in `docs/superpowers/specs/` and `doc
 
 Strict layering, enforced by convention:
 
-- **`src/lib/`** — pure logic, unit-tested with Vitest. `chords.ts` wraps tonal's `Chord.getChord` (KEYS, CHORD_TYPES, `getChordInfo`); `fretboard.ts` precomputes all 78 string/fret positions (`FRETBOARD`); `voicings.ts` looks up chord voicings from generated JSON; `audio.ts` is the one untested lib module (Web Audio can't run under Vitest/node — the plan explicitly exempts it; verify audio manually in the browser).
+- **`src/lib/`** — pure logic, unit-tested with Vitest. `chords.ts` wraps tonal (`KEYS`, `getChordBySymbol`); `chordCatalog.ts` is the shared ~36-chord catalog (`{symbol, label, category}`, `toGlyph`); `chordDetect.ts` reverse-analyzes MIDI notes into chord names; `fretboard.ts` precomputes all 78 string/fret positions (`FRETBOARD`); `voicings.ts` looks up guitar voicings (`getVoicings(key, symbol)`) from generated JSON, keyed by catalog symbol; `staff.ts`/`player.ts` are pure helpers. `audio.ts` and the Web MIDI hook can't run under Vitest/node — verify those manually in the browser.
 - **`src/components/`** — pure, stateless, props-driven display components (SVG rendering lives here). No business logic, no state.
-- **`src/App.tsx`** — the only stateful module: `selectedKey` + `chordType`, everything else derived via `useMemo`.
+- **`src/App.tsx`** — hash-router shell holding only the active tab. Each view (`ChordFinderView`, `MidiDetectorView`) owns its own state via hooks (`useChordCatalog`, `useTrackPlayer`, `useMidiInput`); the MIDI view is lazy-loaded so VexFlow only loads on that tab.
 
 ### Enharmonic policy (the core design decision)
 
-Note **matching** uses chroma (pitch class 0–11) so C# ≡ Db; note **display** uses the chord's own spelling from tonal (C minor shows Eb, never D#). `App.tsx` builds a `noteLabels: Map<chroma, spelledName>` from `ChordInfo`'s parallel `chromas`/`notes` arrays and passes it to `Fretboard`. Never display fretboard-derived note names directly — they are sharp-spelled and only used for audio pitch.
+Note **matching** uses chroma (pitch class 0–11) so C# ≡ Db; note **display** uses the chord's own spelling from tonal (C minor shows Eb, never D#). `ChordFinderView` builds a `noteLabels: Map<chroma, spelledName>` from the chord's parallel `chromas`/`notes` arrays and passes it to `Fretboard`. Never display fretboard-derived note names directly — they are sharp-spelled and only used for audio pitch.
 
 ### Two opposite string orderings — easy to get wrong
 
@@ -38,7 +38,7 @@ Note **matching** uses chroma (pitch class 0–11) so C# ≡ Db; note **display*
 
 ### Data pipeline for voicings
 
-`@tombatossals/chords-db` is a **devDependency only** — the runtime bundle imports the committed, generated `src/data/voicings.json` (12 keys × 9 types subset). `scripts/extract-voicings.mjs` regenerates it and exits non-zero if any key×type combo has no positions. Sharp-key mapping to chords-db names (`C#→Csharp, D#→Eb, F#→Fsharp, G#→Ab, A#→Bb`) lives in both the script and implicitly in the JSON keys; the script duplicates the chord-type list from `chords.ts` (it can't import the .ts module) — the suite-wide tests in `voicings.test.ts` fail loudly if the two drift. If you add a key or chord type, update the script and re-run `npm run extract-voicings`.
+`@tombatossals/chords-db` is a **devDependency only** — the runtime bundle imports the committed, generated `src/data/voicings.json` (12 keys × 34 guitar chords). `scripts/extract-voicings.mjs` regenerates it and exits non-zero if any mapped key×chord has no positions. Two maps live in the script (it can't import the .ts modules): `KEY_MAP` for sharp-key → chords-db names (`C#→Csharp, D#→Eb, F#→Fsharp, G#→Ab, A#→Bb`), and `SYMBOL_TO_SUFFIX` for our catalog symbol → chords-db suffix (e.g. `6/9→69, mMaj7→mmaj7, alt7→alt`, plus enharmonic `7#5→aug7, 9#5→aug9`). The JSON is keyed by our catalog symbols. Catalog chords with no chords-db data (`m13`, `13#11`) are omitted — `getVoicings` returns `[]` and `VoicingsPanel` renders nothing. `voicings.test.ts` guards drift (every guitar-supported catalog symbol must have ≥1 voicing across all 12 keys). If you add a key or chord, update `chordCatalog.ts` + `SYMBOL_TO_SUFFIX` and re-run `npm run extract-voicings`.
 
 ### Audio
 
@@ -46,4 +46,4 @@ Single module-level `AudioContext`, lazily created/resumed on first user gesture
 
 ## Testing policy
 
-Music-theory logic in `src/lib/` gets Vitest coverage (colocated `*.test.ts`); SVG rendering and audio are verified manually in the browser. Keep exhaustive matrix tests (all 12 keys × 9 types) — they are the guard against tonal upgrades and data drift.
+Music-theory logic in `src/lib/` gets Vitest coverage (colocated `*.test.ts`); SVG rendering, audio, and Web MIDI are verified manually in the browser. Keep exhaustive matrix tests (all 12 keys × the catalog / guitar-supported chords) — they are the guard against tonal upgrades and data drift.
