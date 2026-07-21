@@ -528,32 +528,40 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 .wkey {
   position: relative;
   flex: 1;
+  padding: 0;
   border: 1px solid #1b1a17;
   border-radius: 0 0 5px 5px;
   background: linear-gradient(180deg, #f2efe6, #ddd8ca);
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
-  transition: background 0.06s, box-shadow 0.06s;
+  cursor: pointer;
+  appearance: none;
+  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
 }
 .wkey.lit {
   background: linear-gradient(180deg, var(--accent), var(--accent-deep));
   box-shadow: 0 0 16px var(--accent), 0 3px 0 rgba(0, 0, 0, 0.18);
 }
+.wkey:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); }
 
 .bkey {
   position: absolute;
   top: 0;
   height: 60%;
+  padding: 0;
   border: 1px solid #000;
   border-radius: 0 0 4px 4px;
   background: linear-gradient(180deg, #2c2921, #14130f);
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
   z-index: 2;
-  transition: background 0.06s, box-shadow 0.06s;
+  cursor: pointer;
+  appearance: none;
+  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
 }
 .bkey.lit {
   background: linear-gradient(180deg, var(--accent), var(--accent-deep));
   box-shadow: 0 0 14px var(--accent);
 }
+.bkey:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
 
 .klabel {
   position: absolute;

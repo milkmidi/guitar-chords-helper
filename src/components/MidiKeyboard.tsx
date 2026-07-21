@@ -6,6 +6,8 @@ const HIGH = 96; // C7
 const BLACK = new Set([1, 3, 6, 8, 10]);
 
 const octaveOf = (m: number) => Math.floor(m / 12) - 1;
+const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const noteLabel = (m: number) => NOTE_NAMES[m % 12] + octaveOf(m);
 
 const whiteMidis: number[] = [];
 for (let m = LOW; m <= HIGH; m++) {
@@ -35,23 +37,33 @@ for (let m = LOW; m <= HIGH; m++) {
 
 interface Props {
   litMidis: number[];
+  onKeyPlay?: (midi: number) => void; // 點擊琴鍵時發聲
 }
 
-export default function MidiKeyboard({ litMidis }: Props) {
+export default function MidiKeyboard({ litMidis, onKeyPlay }: Props) {
   const lit = new Set(litMidis);
   return (
     <div className="keyboard-wrap">
-      <div className="keyboard" role="img" aria-label="MIDI 鍵盤，亮起的鍵為目前按下的音">
+      <div className="keyboard" role="group" aria-label="MIDI 鍵盤，點擊琴鍵可發聲">
         {whiteMidis.map((m) => (
-          <div key={m} className={`wkey${lit.has(m) ? " lit" : ""}`}>
+          <button
+            key={m}
+            type="button"
+            className={`wkey${lit.has(m) ? " lit" : ""}`}
+            aria-label={noteLabel(m)}
+            onClick={() => onKeyPlay?.(m)}
+          >
             {m % 12 === 0 && <span className="klabel">C{octaveOf(m)}</span>}
-          </div>
+          </button>
         ))}
         {blackKeys.map(({ midi, left, width }) => (
-          <div
+          <button
             key={midi}
+            type="button"
             className={`bkey${lit.has(midi) ? " lit" : ""}`}
+            aria-label={noteLabel(midi)}
             style={{ left: `${left}%`, width: `${width}%` }}
+            onClick={() => onKeyPlay?.(midi)}
           />
         ))}
       </div>

@@ -2,8 +2,9 @@ import { useMemo, useState } from "react";
 import { useMidiInput } from "../hooks/useMidiInput";
 import { toGlyph, type CategoryFilter } from "../lib/chordCatalog";
 import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDetect";
+import { Note } from "tonal";
 import { getChordBySymbol, type Key } from "../lib/chords";
-import { playStrum } from "../lib/audio";
+import { playNote, playStrum } from "../lib/audio";
 import ChordCatalogSelector from "./ChordCatalogSelector";
 import ChordReadout from "./ChordReadout";
 import KeySelector from "./KeySelector";
@@ -77,7 +78,7 @@ export default function MidiDetectorView() {
 
       <Staff notes={staffNotes} onPlay={() => playStrum(displayMidis)} />
 
-      <MidiKeyboard litMidis={displayMidis} />
+      <MidiKeyboard litMidis={displayMidis} onKeyPlay={(midi) => playNote(Note.fromMidi(midi))} />
 
       <div className="midi-bar">
         <button type="button" className="transport-button is-play" onClick={start} disabled={started}>
