@@ -1,36 +1,25 @@
 import { useCallback, useMemo, useState } from "react";
-import ChordCatalogSelector from "./ChordCatalogSelector";
-import ChordNotesDisplay from "./ChordNotesDisplay";
 import Fretboard from "./Fretboard";
-import KeySelector from "./KeySelector";
 import TrackControls from "./TrackControls";
 import TrackPanel from "./TrackPanel";
 import VoicingsPanel from "./VoicingsPanel";
-import { useChordCatalog } from "../hooks/useChordCatalog";
-import { useRootShortcut } from "../hooks/useRootShortcut";
 import { useTrackPlayer } from "../hooks/useTrackPlayer";
-import { CHORD_CATALOG } from "../lib/chordCatalog";
-import { getChordBySymbol, type Key } from "../lib/chords";
+import { playNote, playStrum } from "../lib/audio";
+import type { ChordSymbolInfo, Key } from "../lib/chords";
 import { MEASURE_COUNT, type Track, type TrackCell } from "../lib/player";
 import { getVoicings } from "../lib/voicings";
-import { playNote, playStrum } from "../lib/audio";
 
-export default function ChordFinderView() {
-  const [selectedKey, setSelectedKey] = useState<Key>("C");
-  useRootShortcut(setSelectedKey);
-  const { category, symbol, changeCategory, setSymbol } = useChordCatalog();
+interface Props {
+  selectedKey: Key;
+  symbol: string;
+  chord: ChordSymbolInfo;
+  chordName: string; // 例如 "C 6/9"
+  noteLabels: Map<number, string>; // chroma -> 依和弦拼寫的音名
+}
 
-  const chord = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
-  // 英雄區類型標籤：大三和弦顯示空白（僅 "C"），其餘用 catalog label（如 "6/9"、"m7"）
-  const typeLabel =
-    symbol === "major" ? "" : (CHORD_CATALOG.find((c) => c.symbol === symbol)?.label ?? symbol);
-  const chordName = `${selectedKey}${typeLabel ? ` ${typeLabel}` : ""}`;
-  const noteLabels = useMemo(() => {
-    const labels = new Map<number, string>();
-    chord.chromas.forEach((chroma, i) => labels.set(chroma, chord.notes[i]));
-    return labels;
-  }, [chord]);
-
+// 吉他欄：指板圖 + 常用按法 + 音軌。和弦選擇由上層共用控制項驅動，
+// 只保留音軌相關的本地狀態。
+export default function GuitarSection({ selectedKey, symbol, chord, chordName, noteLabels }: Props) {
   const voicings = useMemo(() => getVoicings(selectedKey, symbol), [selectedKey, symbol]);
   const chordId = `${selectedKey}-${symbol}`;
 
@@ -47,35 +36,7 @@ export default function ChordFinderView() {
   }, []);
 
   return (
-    <>
-      <ChordNotesDisplay
-        key={chordId}
-        rootLabel={selectedKey}
-        typeLabel={typeLabel}
-        notes={chord.notes}
-        root={chord.root}
-      />
-
-      <section className="controls" aria-label="建立和弦">
-        <div className="selector-group">
-          <p className="field-label">
-            根音 <span className="field-hint">按 1–7 = C–B</span>
-          </p>
-          <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
-        </div>
-        <div className="selector-group">
-          <p className="field-label">
-            和弦類型 <span className="field-hint">←/→ 切換，↑/↓ 分類</span>
-          </p>
-          <ChordCatalogSelector
-            category={category}
-            symbol={symbol}
-            onCategoryChange={changeCategory}
-            onSymbolChange={setSymbol}
-          />
-        </div>
-      </section>
-
+    <section className="instrument-col" aria-label="吉他">
       <section className="content-section" aria-labelledby="fretboard-title">
         <div className="section-heading">
           <h2 id="fretboard-title">指板上的和弦音</h2>
@@ -115,6 +76,6 @@ export default function ChordFinderView() {
           onClearCell={handleClearCell}
         />
       </section>
-    </>
+    </section>
   );
 }
