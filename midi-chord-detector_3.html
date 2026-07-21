@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和弦偵測器 · MIDI Chord Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14130f;
+    --ink-2: #1c1a15;
+    --panel: #211e18;
+    --edge: #3a352b;
+    --brass: #d99a3a;
+    --brass-bright: #f3c15e;
+    --cream: #efe9db;
+    --cream-dim: #b8b09c;
+    --white-key: #ece6d6;
+    --white-key-lit: #f3c15e;
+    --black-key: #26231c;
+    --black-key-lit: #b5772a;
+    --red: #c96a4a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: radial-gradient(120% 80% at 50% -10%, #221f18 0%, var(--ink) 60%);
+    color: var(--cream);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .frame { width: 100%; max-width: 920px; }
+
+  .plate {
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel), var(--ink-2));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 40px rgba(0,0,0,0.45);
+    padding: 22px 26px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand .mark {
+    font-family: 'Fraunces', serif; font-weight: 900; font-size: 26px;
+    letter-spacing: 0.5px; color: var(--cream);
+  }
+  .brand .sub {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--cream-dim);
+  }
+  .status {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--cream-dim);
+  }
+  .lamp {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #4a4436; box-shadow: 0 0 0 1px rgba(0,0,0,0.4) inset;
+    transition: background .25s, box-shadow .25s;
+  }
+  .lamp.on { background: var(--brass-bright); box-shadow: 0 0 10px var(--brass), 0 0 0 1px rgba(0,0,0,0.4) inset; }
+  .lamp.err { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  .readout {
+    margin-top: 18px; border: 1px solid var(--edge); border-radius: 10px;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.14) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg, #171511, #0f0e0b);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.3) inset;
+    padding: 34px 26px 28px; text-align: center; min-height: 190px;
+    display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  }
+  .chord-name {
+    font-family: 'Fraunces', serif; font-weight: 900;
+    font-size: clamp(48px, 12vw, 108px); line-height: 0.95;
+    color: var(--brass-bright); text-shadow: 0 0 26px rgba(217,154,58,0.35);
+    letter-spacing: -1px; min-height: 1em;
+  }
+  .chord-name.dim { color: var(--cream-dim); text-shadow: none; opacity: .8; }
+  .chord-full {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--cream-dim); min-height: 1em;
+  }
+  .notes-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 30px; }
+  .note-chip {
+    font-size: 14px; font-weight: 600; padding: 5px 11px; border-radius: 6px;
+    background: rgba(217,154,58,0.12); border: 1px solid rgba(217,154,58,0.35); color: var(--brass-bright);
+  }
+
+  /* alternate roots / same notes */
+  .alts { min-height: 0; }
+  .alts.show {
+    margin-top: 6px; padding-top: 16px; border-top: 1px dashed var(--edge);
+    display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .alts.show::before {
+    content: '等音和弦 · SAME NOTES, OTHER ROOTS';
+    font-size: 10px; letter-spacing: 2px; color: var(--cream-dim);
+  }
+  .alt-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .alt-chip {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px;
+    padding: 4px 12px; border-radius: 7px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--edge); color: var(--cream);
+  }
+  .alt-chip.primary {
+    background: rgba(217,154,58,0.16); border-color: var(--brass); color: var(--brass-bright);
+  }
+
+  .keyboard-wrap {
+    margin-top: 18px; border: 1px solid var(--edge); border-radius: 10px;
+    background: linear-gradient(180deg, #100f0c, #080807);
+    padding: 14px 14px 16px; box-shadow: 0 18px 40px rgba(0,0,0,0.45); overflow-x: auto;
+  }
+  .keyboard { position: relative; display: flex; height: 190px; min-width: 760px; }
+  .wkey {
+    position: relative; flex: 1;
+    background: linear-gradient(180deg, var(--white-key), #d9d2bf);
+    border: 1px solid #0c0b09; border-radius: 0 0 5px 5px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25); transition: background .06s, box-shadow .06s;
+  }
+  .wkey.lit {
+    background: linear-gradient(180deg, var(--white-key-lit), #d99a3a);
+    box-shadow: 0 0 18px rgba(243,193,94,0.6), 0 1px 0 rgba(0,0,0,0.25);
+  }
+  .bkey {
+    position: absolute; top: 0; width: 60%; height: 60%;
+    background: linear-gradient(180deg, #2c2921, var(--black-key));
+    border: 1px solid #000; border-radius: 0 0 4px 4px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.5); z-index: 2; transition: background .06s, box-shadow .06s;
+  }
+  .bkey.lit {
+    background: linear-gradient(180deg, #d99a3a, var(--black-key-lit));
+    box-shadow: 0 0 16px rgba(217,154,58,0.7);
+  }
+  .klabel {
+    position: absolute; bottom: 6px; left: 0; right: 0; text-align: center;
+    font-size: 9px; color: #8a8371; pointer-events: none;
+  }
+
+  .bar { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  button.btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--ink);
+    background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+    border: 1px solid #8a6420; border-radius: 7px; padding: 11px 20px;
+    cursor: pointer; font-weight: 600; transition: filter .15s, transform .05s;
+  }
+  button.btn:hover { filter: brightness(1.06); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+
+  .device { font-size: 12px; color: var(--cream-dim); letter-spacing: 1px; }
+  .device b { color: var(--cream); font-weight: 600; }
+
+  .hint {
+    margin-top: 20px; font-size: 12px; line-height: 1.7; color: var(--cream-dim); letter-spacing: 0.3px;
+  }
+  .hint code {
+    background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; color: var(--cream);
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="plate">
+    <div class="brand">
+      <span class="mark">和弦偵測器</span>
+      <span class="sub">MIDI Chord Detector</span>
+    </div>
+    <div class="status">
+      <span class="lamp" id="lamp"></span>
+      <span id="statusText">尚未連線</span>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="chord-name dim" id="chordName">—</div>
+    <div class="chord-full" id="chordFull">按下 START 授權後開始彈奏</div>
+    <div class="notes-row" id="notesRow"></div>
+    <div class="alts" id="alts"></div>
+  </div>
+
+  <div class="keyboard-wrap">
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <div class="bar">
+    <button class="btn" id="startBtn">Start MIDI</button>
+    <span class="device">裝置：<b id="deviceName">—</b></span>
+  </div>
+
+  <div class="hint">
+    需要用 <b>Chrome / Edge</b> 開啟。若內嵌預覽視窗抓不到權限，請下載後
+    <b>直接用 Chrome 開檔</b>（<code>file://</code> 也算安全環境）。<br>
+    音名會依和弦品質做正確的升降記法（例如 <code>C°7 → C–E♭–G♭–B♭♭</code>）。
+    支援三／七和弦、sus、add、6，以及延伸和弦 <code>9 / 11 / 13</code>（含 maj、m 家族與省五度／省三度的常見握法）。
+    對稱和弦與等音組（如 <code>C6 = Am7</code>、<code>C11 = B♭6/9</code>）會在下方列出其他根音的命名。
+  </div>
+
+</div>
+
+<script>
+// ---------- Letters & spelling ----------
+const LETTERS  = ['C','D','E','F','G','A','B'];
+const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+// root spelling per pitch-class → [letterName, letterIndex]
+const ROOT_NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const ROOT_LETTER_IDX = ROOT_NAMES.map(n => LETTERS.indexOf(n[0]));
+// simple mixed spelling fallback (unknown chords / single notes)
+const DISP = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+
+function accStr(d){
+  if(d === 0) return '';
+  if(d === 1) return '♯';
+  if(d === -1) return '♭';
+  if(d === 2) return '♯♯';
+  if(d === -2) return '♭♭';
+  return d > 0 ? '♯'.repeat(d) : '♭'.repeat(-d);
+}
+function octaveOf(m){ return Math.floor(m/12) - 1; }
+function pcName(pc){ return DISP[((pc%12)+12)%12]; }
+
+// spell one chord tone given root pc, root letter index, semitone above root, letter-degree offset
+function spellTone(rootPc, rootLi, semi, degOff){
+  const li = (rootLi + degOff) % 7;
+  const naturalPc = LETTER_PC[li];
+  const actualPc = (rootPc + semi) % 12;
+  let d = ((actualPc - naturalPc + 6) % 12) - 6; // -6..5, lands in -2..2 for real chords
+  return { letter: LETTERS[li], name: LETTERS[li] + accStr(d), pc: actualPc };
+}
+
+// ---------- Chord templates: [semitone, letter-degree-offset] ----------
+const TEMPLATES = [
+  { sym:'',      full:'major',                 t:[[0,0],[4,2],[7,4]] },
+  { sym:'m',     full:'minor',                 t:[[0,0],[3,2],[7,4]] },
+  { sym:'°',     full:'diminished',            t:[[0,0],[3,2],[6,4]] },
+  { sym:'+',     full:'augmented',             t:[[0,0],[4,2],[8,4]] },
+  { sym:'sus2',  full:'suspended 2nd',         t:[[0,0],[2,1],[7,4]] },
+  { sym:'sus4',  full:'suspended 4th',         t:[[0,0],[5,3],[7,4]] },
+  { sym:'maj7',  full:'major 7th',             t:[[0,0],[4,2],[7,4],[11,6]] },
+  { sym:'7',     full:'dominant 7th',          t:[[0,0],[4,2],[7,4],[10,6]] },
+  { sym:'m7',    full:'minor 7th',             t:[[0,0],[3,2],[7,4],[10,6]] },
+  { sym:'°7',    full:'diminished 7th',        t:[[0,0],[3,2],[6,4],[9,6]] },
+  { sym:'ø7',    full:'half-diminished (m7♭5)',t:[[0,0],[3,2],[6,4],[10,6]] },
+  { sym:'mMaj7', full:'minor–major 7th',       t:[[0,0],[3,2],[7,4],[11,6]] },
+  { sym:'+7',    full:'augmented 7th',         t:[[0,0],[4,2],[8,4],[10,6]] },
+  { sym:'6',     full:'major 6th',             t:[[0,0],[4,2],[7,4],[9,5]] },
+  { sym:'m6',    full:'minor 6th',             t:[[0,0],[3,2],[7,4],[9,5]] },
+  { sym:'add9',  full:'add 9',                 t:[[0,0],[4,2],[7,4],[2,1]] },
+  { sym:'madd9', full:'minor add 9',           t:[[0,0],[3,2],[7,4],[2,1]] },
+  { sym:'5',     full:'power chord',           t:[[0,0],[7,4]] },
+
+  // ---- extended: 9th ----
+  { sym:'9',     full:'dominant 9th',          t:[[0,0],[4,2],[7,4],[10,6],[2,1]] },
+  { sym:'9',     full:'dominant 9th · omit 5', t:[[0,0],[4,2],[10,6],[2,1]] },
+  { sym:'maj9',  full:'major 9th',             t:[[0,0],[4,2],[7,4],[11,6],[2,1]] },
+  { sym:'maj9',  full:'major 9th · omit 5',    t:[[0,0],[4,2],[11,6],[2,1]] },
+  { sym:'m9',    full:'minor 9th',             t:[[0,0],[3,2],[7,4],[10,6],[2,1]] },
+  { sym:'m9',    full:'minor 9th · omit 5',    t:[[0,0],[3,2],[10,6],[2,1]] },
+  { sym:'6/9',   full:'six-nine',              t:[[0,0],[4,2],[7,4],[9,5],[2,1]] },
+  { sym:'m6/9',  full:'minor six-nine',        t:[[0,0],[3,2],[7,4],[9,5],[2,1]] },
+
+  // ---- extended: 11th ----
+  { sym:'11',    full:'dominant 11th',         t:[[0,0],[4,2],[7,4],[10,6],[2,1],[5,3]] },
+  { sym:'11',    full:'dominant 11th · omit 3',t:[[0,0],[7,4],[10,6],[2,1],[5,3]] },
+  { sym:'maj11', full:'major 11th',            t:[[0,0],[4,2],[7,4],[11,6],[2,1],[5,3]] },
+  { sym:'m11',   full:'minor 11th',            t:[[0,0],[3,2],[7,4],[10,6],[2,1],[5,3]] },
+
+  // ---- extended: 13th (voiced without the 11th, the usual practice) ----
+  { sym:'13',    full:'dominant 13th · omit 11',t:[[0,0],[4,2],[7,4],[10,6],[2,1],[9,5]] },
+  { sym:'13',    full:'dominant 13th · omit 5,11',t:[[0,0],[4,2],[10,6],[2,1],[9,5]] },
+  { sym:'maj13', full:'major 13th · omit 11',  t:[[0,0],[4,2],[7,4],[11,6],[2,1],[9,5]] },
+  { sym:'m13',   full:'minor 13th · omit 11',  t:[[0,0],[3,2],[7,4],[10,6],[2,1],[9,5]] },
+];
+// normalized pitch-class set per template for matching
+TEMPLATES.forEach(tp => {
+  tp.set = [...new Set(tp.t.map(([s]) => ((s%12)+12)%12))].sort((a,b)=>a-b);
+});
+const keyOf = arr => arr.join(',');
+const TEMPLATE_MAP = new Map(TEMPLATES.map(tp => [keyOf(tp.set), tp]));
+
+// ---------- Analysis ----------
+function analyze(midiNotes){
+  if(midiNotes.length === 0) return null;
+  const sorted = [...midiNotes].sort((a,b)=>a-b);
+  const bassPc = sorted[0] % 12;
+  const pcs = [...new Set(sorted.map(n => n % 12))].sort((a,b)=>a-b);
+
+  if(pcs.length === 1){
+    return { single:true, name: pcName(pcs[0]), full:'single note',
+             chips: sorted.map(m => pcName(m%12) + octaveOf(m)), matches:[] };
+  }
+
+  // collect every root that yields a known chord
+  const matches = [];
+  for(const root of pcs){
+    const rel = pcs.map(pc => (pc - root + 12) % 12).sort((a,b)=>a-b);
+    const tp = TEMPLATE_MAP.get(keyOf(rel));
+    if(tp) matches.push({ root, tp, isBass: root === bassPc });
+  }
+
+  if(matches.length === 0){
+    return { unknown:true, name:'?', full: pcs.length + ' notes',
+             chips: sorted.map(m => pcName(m%12) + octaveOf(m)), matches:[] };
+  }
+
+  // primary: prefer bass as root, then the richer chord
+  let primary = matches[0];
+  for(const c of matches){
+    if(c.isBass && !primary.isBass) primary = c;
+    else if(c.isBass === primary.isBass && c.tp.set.length > primary.tp.set.length) primary = c;
+  }
+
+  // spell notes according to the primary chord
+  const rootLi = ROOT_LETTER_IDX[primary.root];
+  const pcToName = {};
+  primary.tp.t.forEach(([semi, deg]) => {
+    const s = spellTone(primary.root, rootLi, semi, deg);
+    pcToName[s.pc] = s.name;
+  });
+  const chips = sorted.map(m => {
+    const pc = m % 12;
+    return (pcToName[pc] || pcName(pc)) + octaveOf(m);
+  });
+
+  const primaryName = ROOT_NAMES[primary.root] + primary.tp.sym;
+  const slash = (primary.root !== bassPc) ? ROOT_NAMES[bassPc] : null;
+
+  const altNames = matches.map(c => ({
+    label: ROOT_NAMES[c.root] + c.tp.sym,
+    primary: c === primary
+  }));
+
+  return {
+    name: primaryName,
+    full: ROOT_NAMES[primary.root] + ' ' + primary.tp.full,
+    chips, slash, matches: altNames
+  };
+}
+
+// ---------- Rendering ----------
+const chordName = document.getElementById('chordName');
+const chordFull = document.getElementById('chordFull');
+const notesRow  = document.getElementById('notesRow');
+const altsBox   = document.getElementById('alts');
+
+function render(){
+  const active = [...pressed].sort((a,b)=>a-b);
+  document.querySelectorAll('[data-midi]').forEach(el=>{
+    el.classList.toggle('lit', pressed.has(+el.dataset.midi));
+  });
+
+  const res = analyze(active);
+  if(!res){
+    chordName.textContent = '—';
+    chordName.classList.add('dim');
+    chordFull.textContent = '等待輸入…';
+    notesRow.innerHTML = '';
+    altsBox.className = 'alts';
+    altsBox.innerHTML = '';
+    return;
+  }
+
+  chordName.classList.remove('dim');
+  chordName.textContent = res.name + (res.slash ? ('/'+res.slash) : '');
+  chordFull.textContent = res.full + (res.slash ? ('  ·  bass '+res.slash) : '');
+  notesRow.innerHTML = res.chips.map(n => '<span class="note-chip">'+n+'</span>').join('');
+
+  // show alternates only when the same notes name more than one chord
+  if(res.matches.length > 1){
+    altsBox.className = 'alts show';
+    altsBox.innerHTML = '<div class="alt-chips">' +
+      res.matches.map(a => '<span class="alt-chip'+(a.primary?' primary':'')+'">'+a.label+'</span>').join('') +
+      '</div>';
+  } else {
+    altsBox.className = 'alts';
+    altsBox.innerHTML = '';
+  }
+}
+
+// ---------- Build keyboard ----------
+const LOW = 36, HIGH = 96; // C2 .. C7
+const BLACK = new Set([1,3,6,8,10]);
+const kb = document.getElementById('keyboard');
+const whiteMidis = [];
+for(let m=LOW; m<=HIGH; m++){ if(!BLACK.has(m%12)) whiteMidis.push(m); }
+whiteMidis.forEach(m=>{
+  const w = document.createElement('div');
+  w.className = 'wkey'; w.dataset.midi = m;
+  if(m%12 === 0){
+    const lab = document.createElement('span');
+    lab.className = 'klabel'; lab.textContent = 'C' + octaveOf(m);
+    w.appendChild(lab);
+  }
+  kb.appendChild(w);
+});
+requestAnimationFrame(()=>{
+  const wWidth = 100 / whiteMidis.length;
+  for(let m=LOW; m<=HIGH; m++){
+    if(!BLACK.has(m%12)) continue;
+    let whiteBelow = 0;
+    for(let i=0;i<whiteMidis.length;i++){ if(whiteMidis[i] < m) whiteBelow = i; else break; }
+    const b = document.createElement('div');
+    b.className = 'bkey'; b.dataset.midi = m;
+    b.style.left = ((whiteBelow+1)*wWidth - wWidth*0.3) + '%';
+    b.style.width = (wWidth*0.6) + '%';
+    kb.appendChild(b);
+  }
+});
+
+// ---------- MIDI ----------
+const pressed = new Set();
+const lamp = document.getElementById('lamp');
+const statusText = document.getElementById('statusText');
+const deviceName = document.getElementById('deviceName');
+
+function onMIDIMessage(e){
+  const [status, data1, data2] = e.data;
+  const cmd = status & 0xf0;
+  if(cmd === 0x90 && data2 > 0) pressed.add(data1);
+  else if(cmd === 0x80 || (cmd === 0x90 && data2 === 0)) pressed.delete(data1);
+  else return;
+  render();
+}
+
+async function start(){
+  if(!navigator.requestMIDIAccess){
+    lamp.classList.add('err');
+    statusText.textContent = '此瀏覽器不支援 Web MIDI';
+    chordFull.textContent = '請改用 Chrome 或 Edge 開啟本檔案';
+    return;
+  }
+  try {
+    const access = await navigator.requestMIDIAccess({ sysex:false });
+    lamp.classList.remove('err'); lamp.classList.add('on');
+    statusText.textContent = '已連線';
+    chordFull.textContent = '開始彈奏你的鍵盤 🎹';
+    const attach = () => {
+      const names = [];
+      access.inputs.forEach(inp => { inp.onmidimessage = onMIDIMessage; names.push(inp.name); });
+      deviceName.textContent = names.length ? names.join(', ') : '（未偵測到輸入裝置）';
+      if(!names.length) statusText.textContent = '已授權，等待裝置';
+    };
+    attach();
+    access.onstatechange = attach;
+  } catch(err){
+    lamp.classList.add('err');
+    statusText.textContent = '權限被拒 / 無法存取';
+    chordFull.textContent = '若在內嵌視窗，請下載後用 Chrome 直接開檔';
+    console.error(err);
+  }
+}
+document.getElementById('startBtn').addEventListener('click', start);
+</script>
+</body>
+</html>
