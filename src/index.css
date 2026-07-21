@@ -502,6 +502,7 @@ button.staff-wrap.is-playable:hover { transform: translate(-2px, -2px); box-shad
 button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--edge); }
 .staff { display: flex; justify-content: center; }
 .staff svg { display: block; }
+.staff-fallback { align-items: center; min-height: 250px; color: #8a8371; font-family: var(--mono); font-size: 13px; }
 
 .keyboard-wrap {
   margin-bottom: 20px;

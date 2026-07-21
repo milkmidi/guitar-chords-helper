@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Note } from "tonal";
 import { useMidiInput } from "../hooks/useMidiInput";
 import { playNote, playStrum } from "../lib/audio";
@@ -7,7 +7,9 @@ import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDet
 import type { ChordSymbolInfo, Key } from "../lib/chords";
 import ChordReadout from "./ChordReadout";
 import MidiKeyboard from "./MidiKeyboard";
-import Staff from "./Staff";
+
+// 五線譜用到 VexFlow（較大），延後載入讓初始包更輕
+const Staff = lazy(() => import("./Staff"));
 
 const octaveOf = (m: number) => Math.floor(m / 12) - 1;
 
@@ -58,7 +60,9 @@ export default function PianoSection({ selectedKey, symbol, chord }: Props) {
 
       {isLive && <ChordReadout result={result} placeholder="彈奏 MIDI 鍵盤" />}
 
-      <Staff notes={staffNotes} onPlay={() => playStrum(displayMidis)} />
+      <Suspense fallback={<div className="staff-wrap staff-fallback">載入五線譜…</div>}>
+        <Staff notes={staffNotes} onPlay={() => playStrum(displayMidis)} />
+      </Suspense>
 
       <MidiKeyboard litMidis={displayMidis} onKeyPlay={(midi) => playNote(Note.fromMidi(midi))} />
 
