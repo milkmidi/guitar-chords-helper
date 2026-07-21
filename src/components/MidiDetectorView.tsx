@@ -3,6 +3,7 @@ import { useMidiInput } from "../hooks/useMidiInput";
 import { toGlyph, type CategoryFilter } from "../lib/chordCatalog";
 import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDetect";
 import { getChordBySymbol, type Key } from "../lib/chords";
+import { playStrum } from "../lib/audio";
 import ChordCatalogSelector from "./ChordCatalogSelector";
 import ChordReadout from "./ChordReadout";
 import KeySelector from "./KeySelector";
@@ -74,7 +75,7 @@ export default function MidiDetectorView() {
 
       <ChordReadout result={result} placeholder="選擇和弦或彈奏 MIDI 鍵盤" />
 
-      <Staff notes={staffNotes} />
+      <Staff notes={staffNotes} onPlay={() => playStrum(displayMidis)} />
 
       <MidiKeyboard litMidis={displayMidis} />
 

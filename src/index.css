@@ -496,6 +496,7 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 .staff-wrap {
   display: flex;
   justify-content: center;
+  width: 100%;
   margin-bottom: 20px;
   padding: 12px;
   border: 2px solid var(--edge);
@@ -503,7 +504,12 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
   background: #f7f5ee;
   box-shadow: 4px 4px 0 var(--edge);
   overflow-x: auto;
+  font: inherit;
+  color: inherit;
 }
+button.staff-wrap.is-playable { cursor: pointer; transition: transform 0.2s var(--spring), box-shadow 0.2s ease; }
+button.staff-wrap.is-playable:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--edge); }
+button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--edge); }
 .staff { display: flex; justify-content: center; }
 .staff svg { display: block; }
 

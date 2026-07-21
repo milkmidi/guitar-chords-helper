@@ -17,12 +17,13 @@ export interface StaffNote {
 
 interface Props {
   notes: StaffNote[];
+  onPlay?: () => void; // 點擊樂譜時播放目前和弦
 }
 
 const WIDTH = 360;
 const HEIGHT = 250;
 
-export default function Staff({ notes }: Props) {
+export default function Staff({ notes, onPlay }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,9 +79,12 @@ export default function Staff({ notes }: Props) {
     bassVoice.draw(ctx, bass);
   }, [notes]);
 
+  const staff = <div className="staff" ref={ref} aria-hidden="true" />;
+
+  if (!onPlay) return <div className="staff-wrap">{staff}</div>;
   return (
-    <div className="staff-wrap">
-      <div className="staff" ref={ref} aria-hidden="true" />
-    </div>
+    <button type="button" className="staff-wrap is-playable" onClick={onPlay} aria-label="播放目前和弦">
+      {staff}
+    </button>
   );
 }
