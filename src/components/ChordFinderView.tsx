@@ -8,6 +8,7 @@ import TrackPanel from "./TrackPanel";
 import VoicingsPanel from "./VoicingsPanel";
 import { useTrackPlayer } from "../hooks/useTrackPlayer";
 import { useRootShortcut } from "../hooks/useRootShortcut";
+import { cycleIndex, useArrowCycle } from "../hooks/useArrowCycle";
 import { CHORD_TYPES, getChordInfo, type ChordTypeId, type Key } from "../lib/chords";
 import { MEASURE_COUNT, type Track, type TrackCell } from "../lib/player";
 import { getVoicings } from "../lib/voicings";
@@ -17,6 +18,12 @@ export default function ChordFinderView() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
   useRootShortcut(setSelectedKey);
   const [chordType, setChordType] = useState<ChordTypeId>("major");
+  const cycleType = (dir: number) =>
+    setChordType((prev) => {
+      const i = CHORD_TYPES.findIndex((t) => t.id === prev);
+      return CHORD_TYPES[cycleIndex(i, CHORD_TYPES.length, dir)].id;
+    });
+  useArrowCycle({ onLeft: () => cycleType(-1), onRight: () => cycleType(1) });
 
   const chord = useMemo(() => getChordInfo(selectedKey, chordType), [selectedKey, chordType]);
   const typeLabel = CHORD_TYPES.find((t) => t.id === chordType)?.label ?? chordType;
@@ -59,7 +66,9 @@ export default function ChordFinderView() {
           <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
         </div>
         <div className="selector-group">
-          <p className="field-label">和弦類型</p>
+          <p className="field-label">
+            和弦類型 <span className="field-hint">←/→ 切換</span>
+          </p>
           <ChordTypeSelector selected={chordType} onSelect={setChordType} />
         </div>
       </section>

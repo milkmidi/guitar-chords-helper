@@ -1,7 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMidiInput } from "../hooks/useMidiInput";
 import { useRootShortcut } from "../hooks/useRootShortcut";
-import { toGlyph, type CategoryFilter } from "../lib/chordCatalog";
+import { cycleIndex, useArrowCycle } from "../hooks/useArrowCycle";
+import {
+  CHORD_CATEGORIES,
+  chordsInCategory,
+  toGlyph,
+  type CategoryFilter,
+} from "../lib/chordCatalog";
 import { analyze, chordTonesToMidi, type DetectionResult } from "../lib/chordDetect";
 import { Note } from "tonal";
 import { getChordBySymbol, type Key } from "../lib/chords";
@@ -21,6 +27,35 @@ export default function MidiDetectorView() {
   useRootShortcut(setSelectedKey);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [symbol, setSymbol] = useState("major");
+
+  // 切分類時若目前和弦不在新分類內，自動選該分類第一個（鍵盤與點擊共用此行為）
+  const changeCategory = useCallback(
+    (next: CategoryFilter) => {
+      setCategory(next);
+      if (next !== "all") {
+        const list = chordsInCategory(next);
+        if (!list.some((c) => c.symbol === symbol)) setSymbol(list[0].symbol);
+      }
+    },
+    [symbol],
+  );
+
+  // ←/→ 在目前分類內循環和弦；↑/↓ 循環分類
+  const cycleSymbol = (dir: number) => {
+    const list = chordsInCategory(category);
+    const i = list.findIndex((c) => c.symbol === symbol);
+    setSymbol(list[cycleIndex(i < 0 ? 0 : i, list.length, dir)].symbol);
+  };
+  const cycleCategory = (dir: number) => {
+    const i = CHORD_CATEGORIES.findIndex((c) => c.id === category);
+    changeCategory(CHORD_CATEGORIES[cycleIndex(i, CHORD_CATEGORIES.length, dir)].id);
+  };
+  useArrowCycle({
+    onLeft: () => cycleSymbol(-1),
+    onRight: () => cycleSymbol(1),
+    onUp: () => cycleCategory(-1),
+    onDown: () => cycleCategory(1),
+  });
 
   const info = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
   const selectedMidis = useMemo(() => chordTonesToMidi(info.chromas), [info]);
@@ -68,11 +103,13 @@ export default function MidiDetectorView() {
           <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
         </div>
         <div className="selector-group">
-          <p className="field-label">和弦類型</p>
+          <p className="field-label">
+            和弦類型 <span className="field-hint">←/→ 切換，↑/↓ 分類</span>
+          </p>
           <ChordCatalogSelector
             category={category}
             symbol={symbol}
-            onCategoryChange={setCategory}
+            onCategoryChange={changeCategory}
             onSymbolChange={setSymbol}
           />
         </div>

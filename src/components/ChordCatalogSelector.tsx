@@ -19,15 +19,6 @@ export default function ChordCatalogSelector({
 }: Props) {
   const visible = chordsInCategory(category);
 
-  const handleCategory = (id: CategoryFilter) => {
-    onCategoryChange(id);
-    // 切到不含目前和弦的分類時，自動選該分類第一個，維持「反白＝鍵盤上顯示」一致
-    if (id !== "all") {
-      const list = chordsInCategory(id);
-      if (!list.some((c) => c.symbol === symbol)) onSymbolChange(list[0].symbol);
-    }
-  };
-
   return (
     <div className="chord-catalog">
       <div className="category-filter" role="group" aria-label="和弦分類">
@@ -35,7 +26,7 @@ export default function ChordCatalogSelector({
           <button
             key={cat.id}
             type="button"
-            onClick={() => handleCategory(cat.id)}
+            onClick={() => onCategoryChange(cat.id)}
             aria-pressed={cat.id === category}
             className={`category-button ${cat.id === category ? "is-active" : ""}`}
           >
