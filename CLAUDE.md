@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev               # Vite dev server at http://localhost:5173
+npm run dev               # Vite dev server at http://localhost:3000 (port set in vite.config.ts)
 npm test                  # vitest run (all tests)
 npx vitest run src/lib/chords.test.ts   # single test file
 npm run build             # tsc -b && vite build (type-checks; must pass before commit)
@@ -15,7 +15,7 @@ npm run extract-voicings  # regenerate src/data/voicings.json from chords-db (se
 
 ## What this is
 
-A guitar-learning SPA (Vite + React 19 + TypeScript + Tailwind CSS v4 + tonal) — one page showing a chord on both a guitar and a piano at once. Pick a key (C…B) and a chord from a category-filtered catalog (~36 types across Major/Minor/Dominant/Diminished/Augmented/Altered) via one shared control set; the choice drives both a **guitar column** (`GuitarSection`: horizontal SVG fretboard, a chord-notes hero line, voicing diagrams v1–vN, a track sequencer) and a **piano column** (`PianoSection`: VexFlow grand staff + keyboard). Live Web MIDI input is analyzed back into chord names and drives only the piano column. The two columns stack vertically within the 1100px page width (`.instrument-grid` is a single column). Shared: KeySelector, ChordCatalogSelector (via `useChordCatalog`), keyboard shortcuts (1–7 roots, ←/→ chord, ↑/↓ category). Clicking a fretboard note / keyboard key plays that pitch; clicking a voicing diagram / the staff strums the chord — all via Web Audio synthesis, no audio files.
+A guitar-learning SPA (Vite + React 19 + TypeScript + Tailwind CSS v4 + tonal) — one page showing a chord on both a guitar and a piano at once. Pick a key (C…B) and a chord from a category-filtered catalog (~36 types across Major/Minor/Dominant/Diminished/Augmented/Altered) via one shared control set; the choice drives both a **guitar column** (`GuitarSection`: horizontal SVG fretboard, a chord-notes hero line, voicing diagrams v1–vN, and a track sequencer currently gated off behind `SHOW_TRACK = false` in `GuitarSection.tsx`) and a **piano column** (`PianoSection`: VexFlow grand staff + keyboard). Live Web MIDI input is analyzed back into chord names and drives only the piano column. The two columns stack vertically within the 1100px page width (`.instrument-grid` is a single column). Shared: KeySelector, ChordCatalogSelector (via `useChordCatalog`), keyboard shortcuts (1–7 roots, ←/→ chord, ↑/↓ category). Clicking a fretboard note / keyboard key plays that pitch; clicking a voicing diagram / the staff strums the chord — all via Web Audio synthesis, no audio files.
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/` — read the spec before extending a feature.
 
@@ -25,7 +25,7 @@ Strict layering, enforced by convention:
 
 - **`src/lib/`** — pure logic, unit-tested with Vitest. `chords.ts` wraps tonal (`KEYS`, `getChordBySymbol`); `chordCatalog.ts` is the shared ~36-chord catalog (`{symbol, label, category}`, `toGlyph`); `chordDetect.ts` reverse-analyzes MIDI notes into chord names; `fretboard.ts` precomputes all 78 string/fret positions (`FRETBOARD`); `voicings.ts` looks up guitar voicings (`getVoicings(key, symbol)`) from generated JSON, keyed by catalog symbol; `staff.ts`/`player.ts` are pure helpers. `audio.ts` and the Web MIDI hook can't run under Vitest/node — verify those manually in the browser.
 - **`src/components/`** — pure, stateless, props-driven display components (SVG rendering lives here). No business logic, no state.
-- **`src/App.tsx`** — the single page. Owns the shared selection (`selectedKey` + `useChordCatalog`) and the keyboard shortcuts, renders the controls + chord hero once, then `GuitarSection` | `PianoSection` in a responsive grid. Each section owns its instrument-local state (`useTrackPlayer` / `useMidiInput`). VexFlow loads eagerly now that the piano is always on the page.
+- **`src/App.tsx`** — the single page. Owns the shared selection (`selectedKey` + `useChordCatalog`) and the keyboard shortcuts, renders the controls + chord hero once, then `GuitarSection` | `PianoSection` in a responsive grid. Each section owns its instrument-local state (`useTrackPlayer` / `useMidiInput`). VexFlow is heavy, so `Staff` stays behind `lazy()` + `Suspense` inside `PianoSection`.
 
 ### Enharmonic policy (the core design decision)
 
