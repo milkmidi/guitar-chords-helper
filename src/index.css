@@ -134,7 +134,14 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 .selector-group + .selector-group { margin-top: 20px; }
 .field-label { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
 .field-hint { color: var(--muted); font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: 0.03em; }
-.key-selector, .type-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+.key-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 和弦類型每顆等寬等高，排成整齊的格線 */
+.type-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
 
 .key-button, .type-button {
   min-height: 44px;
@@ -151,7 +158,7 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 }
 
 .key-button { width: 54px; }
-.type-button { padding: 0 20px; }
+.type-button { padding: 0 8px; }
 .key-button:hover, .type-button:hover { border-color: var(--edge); background: var(--surface); transform: translateY(-2px); }
 .key-button:active, .type-button:active { transform: scale(0.93); }
 
@@ -655,5 +662,6 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 @media (max-width: 480px) {
   .note-pill { width: 46px; height: 46px; font-size: 15px; }
   .key-button { width: 48px; }
+  .type-selector { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   .page-footer { flex-direction: column; }
 }
