@@ -589,6 +589,28 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   font-size: 12px;
 }
 
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--accent-deep);
+  border-bottom-color: currentColor;
+}
+
 /* ---------- Motion (feedback + entrance only, spring feel) ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
