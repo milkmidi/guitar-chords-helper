@@ -2,9 +2,24 @@ import { Note } from "tonal";
 
 let ctx: AudioContext | null = null;
 
+// iOS/WebKit 預設把純 Web Audio（沒有 <audio>/<video> 元素）歸類成 ambient 音訊，
+// 會被手機側邊的靜音開關整個靜音。宣告成 playback 才會像音樂 App 一樣忽略靜音開關。
+// Safari 16.4+ / Chrome 尚未實作，沒有這個 API 的瀏覽器不受影響。
+interface AudioSession {
+  type: "auto" | "playback" | "transient" | "transient-solo" | "ambient" | "play-and-record";
+}
+
+function enablePlaybackSession(): void {
+  const session = (navigator as Navigator & { audioSession?: AudioSession }).audioSession;
+  if (session) session.type = "playback";
+}
+
 // AudioContext 需要使用者手勢才能啟動，所以在第一次點擊時才建立
 function ensureContext(): AudioContext {
-  ctx ??= new AudioContext();
+  if (ctx === null) {
+    enablePlaybackSession();
+    ctx = new AudioContext();
+  }
   if (ctx.state === "suspended") {
     void ctx.resume();
   }
