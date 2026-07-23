@@ -657,11 +657,34 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   .chord-title { padding-bottom: 2px; }
   .note-formula { padding-bottom: 6px; }
   .content-section { margin-top: 44px; }
+
+  /* sticky 控制面板在手機上不能佔掉一整屏：
+     三排各自壓成單行（和弦類型兩行）並改成橫向捲動。 */
+  .key-selector,
+  .category-filter,
+  .type-selector {
+    overflow-x: auto;
+    /* 補回 is-selected 的 scale/rotate 與 box-shadow，否則會被 overflow 裁掉 */
+    padding: 4px 6px 6px 4px;
+    scroll-padding-inline: 12px;
+    overscroll-behavior-x: contain;
+  }
+
+  .key-selector,
+  .category-filter { flex-wrap: nowrap; }
+  .key-button,
+  .category-button { flex: 0 0 auto; }
+
+  .type-selector {
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, 44px);
+    grid-auto-flow: column;
+    grid-auto-columns: 84px;
+  }
 }
 
 @media (max-width: 480px) {
   .note-pill { width: 46px; height: 46px; font-size: 15px; }
   .key-button { width: 48px; }
-  .type-selector { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   .page-footer { flex-direction: column; }
 }
