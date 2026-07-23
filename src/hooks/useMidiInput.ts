@@ -20,6 +20,7 @@ interface MidiNavigator {
 export type LampState = "off" | "on" | "err";
 
 export interface MidiInputState {
+  supported: boolean; // 瀏覽器有沒有 Web MIDI；沒有的話 UI 整組不顯示
   litMidis: number[]; // 目前被按住的 MIDI 音高，已排序
   lampState: LampState;
   statusText: string;
@@ -27,6 +28,9 @@ export interface MidiInputState {
   started: boolean;
   start: () => Promise<void>;
 }
+
+// iOS 上所有瀏覽器都是 WebKit，一律沒有 Web MIDI；桌機也只有 Chrome / Edge 有。
+const SUPPORTED = typeof navigator !== "undefined" && "requestMIDIAccess" in navigator;
 
 export function useMidiInput(): MidiInputState {
   const [litMidis, setLitMidis] = useState<number[]>([]);
@@ -82,5 +86,5 @@ export function useMidiInput(): MidiInputState {
     }
   }, [onMIDIMessage]);
 
-  return { litMidis, lampState, statusText, deviceName, started, start };
+  return { supported: SUPPORTED, litMidis, lampState, statusText, deviceName, started, start };
 }

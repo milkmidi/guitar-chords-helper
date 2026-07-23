@@ -23,7 +23,7 @@ interface Props {
 // 有實體 MIDI 彈奏時以彈奏為準（此時才顯示讀出面板的辨識名稱／等音別名），
 // 否則顯示上層選取的和弦。
 export default function PianoSection({ selectedKey, symbol, chord }: Props) {
-  const { litMidis, lampState, statusText, deviceName, started, start } = useMidiInput();
+  const { supported, litMidis, lampState, statusText, deviceName, started, start } = useMidiInput();
 
   const selectedMidis = useMemo(() => chordTonesToMidi(chord.chromas), [chord]);
   const isLive = litMidis.length > 0;
@@ -52,10 +52,12 @@ export default function PianoSection({ selectedKey, symbol, chord }: Props) {
     <section className="instrument-col" aria-labelledby="piano-title">
       <div className="section-heading">
         <h2 id="piano-title">鋼琴鍵盤</h2>
-        <span className="midi-status">
-          <span className={`lamp lamp-${lampState}`} aria-hidden="true" />
-          {statusText}
-        </span>
+        {supported && (
+          <span className="midi-status">
+            <span className={`lamp lamp-${lampState}`} aria-hidden="true" />
+            {statusText}
+          </span>
+        )}
       </div>
 
       {isLive && <ChordReadout result={result} placeholder="彈奏 MIDI 鍵盤" />}
@@ -66,19 +68,30 @@ export default function PianoSection({ selectedKey, symbol, chord }: Props) {
 
       <MidiKeyboard litMidis={displayMidis} onKeyPlay={(midi) => playNote(Note.fromMidi(midi))} />
 
-      <div className="midi-bar">
-        <button type="button" className="transport-button is-play" onClick={start} disabled={started}>
-          Start MIDI
-        </button>
-        <span className="midi-device">
-          裝置：<b>{deviceName}</b>
-        </span>
-        {isLive && <span className="midi-source">來源：MIDI 彈奏</span>}
-      </div>
+      {supported && (
+        <div className="midi-bar">
+          <button type="button" className="transport-button is-play" onClick={start} disabled={started}>
+            Start MIDI
+          </button>
+          <span className="midi-device">
+            裝置：<b>{deviceName}</b>
+          </span>
+          {isLive && <span className="midi-source">來源：MIDI 彈奏</span>}
+        </div>
+      )}
 
       <p className="section-note midi-hint">
-        點鍵盤琴鍵或五線譜即可發聲；接上 MIDI 鍵盤按 Start 彈奏會即時辨識和弦（對稱和弦與等音組
-        如 C6 = Am7 會列出其他根音）。需要用 <b>Chrome / Edge</b> 才能使用 MIDI。
+        {supported ? (
+          <>
+            點鍵盤琴鍵或五線譜即可發聲；接上 MIDI 鍵盤按 Start 彈奏會即時辨識和弦（對稱和弦與等音組
+            如 C6 = Am7 會列出其他根音）。
+          </>
+        ) : (
+          <>
+            點鍵盤琴鍵或五線譜即可發聲。接上 MIDI 鍵盤即時辨識和弦的功能需要 <b>Chrome / Edge</b>，
+            此瀏覽器不支援。
+          </>
+        )}
       </p>
     </section>
   );
