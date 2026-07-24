@@ -23,6 +23,7 @@ describe("getDegree", () => {
     expect(getDegree(0, 100, 100, 100)).toBe(90));
   it("returns 180 for a point directly above", () =>
     expect(getDegree(100, 0, 100, 100)).toBe(180));
+  it("returns 0 at the exact center", () => expect(getDegree(100, 100, 100, 100)).toBe(0));
 });
 
 describe("bpmFromTaps", () => {

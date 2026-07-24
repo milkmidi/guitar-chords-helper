@@ -15,6 +15,7 @@ export function clampBpm(bpm: number): number {
 export function getDegree(clientX: number, clientY: number, centerX: number, centerY: number): number {
   const x = clientX - centerX;
   const y = clientY - centerY;
+  if (x === 0 && y === 0) return 0;
   let degree = Math.atan(y / x) * RADIANS_TO_DEGREES;
   if (x < 0) {
     degree += 90;

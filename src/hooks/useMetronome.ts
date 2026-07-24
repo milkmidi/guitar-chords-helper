@@ -9,9 +9,12 @@ interface UseMetronomeOptions {
   onBeat: (beat: number) => void;
 }
 
-// 精準節拍器：用 requestAnimationFrame + AudioContext 時鐘排程，避免 setInterval 漂移。
 export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetronomeOptions): void {
-  // muted / onBeat 用 ref 讀取，避免它們變動時重啟排程迴圈。
+  // bpm / beats / muted / onBeat 都用 ref 讀取，變動時不重啟排程迴圈（避免改拍速時爆音、拍點歸零）。
+  const bpmRef = useRef(bpm);
+  bpmRef.current = bpm;
+  const beatsRef = useRef(beats);
+  beatsRef.current = beats;
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
   const onBeatRef = useRef(onBeat);
@@ -25,10 +28,10 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
     let rafId: number | null = null;
     let nextNoteTime = getAudioTime();
     let beat = 0;
-    const interval = 60 / bpm;
 
     const scheduler = (): void => {
       const now = getAudioTime();
+      const interval = 60 / bpmRef.current;
       // 分頁切到背景時 rAF 會暫停；回到前景避免一次補發上百拍的爆音，落後太多就直接跳到現在。
       if (now - nextNoteTime > interval * 2) {
         nextNoteTime = now;
@@ -36,7 +39,7 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
       while (now >= nextNoteTime) {
         if (!mutedRef.current) playClick(beat === 0);
         onBeatRef.current(beat);
-        beat = (beat + 1) % beats;
+        beat = (beat + 1) % beatsRef.current;
         nextNoteTime += interval;
       }
       rafId = requestAnimationFrame(scheduler);
@@ -46,5 +49,5 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [isPlaying, bpm, beats]);
+  }, [isPlaying]);
 }
