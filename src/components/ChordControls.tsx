@@ -27,11 +27,13 @@ export default function ChordControls({
 }: Props) {
   return (
     <section ref={controlsRef} className="controls" aria-label="建立和弦">
-      <div className="selector-group controls-root">
+      <div className="selector-group controls-root flex flex-col">
         <p className="field-label">
-          根音 <span className="field-hint">按 1–7 = C–B</span>
+          根音 <span className="field-hint">按 1-7 = C-B</span>
         </p>
-        <KeySelector selected={selectedKey} onSelect={onKeySelect} />
+        <div className="flex-1">
+          <KeySelector selected={selectedKey} onSelect={onKeySelect} />
+        </div>
       </div>
 
       <div className="selector-group controls-chord">

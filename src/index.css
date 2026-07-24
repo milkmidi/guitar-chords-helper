@@ -165,7 +165,16 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 }
 .field-label { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
 .field-hint { color: var(--muted); font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: 0.03em; }
-.key-selector { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.key-selector {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  min-height: 156px;
+  overflow: hidden;
+  border: 2px solid var(--edge);
+  border-radius: 12px;
+  background: var(--edge);
+}
 
 .category-row {
   display: flex;
@@ -210,26 +219,88 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
   gap: 8px;
 }
 
-.key-button, .type-button {
+.key-button,
+.type-button {
+  font-family: var(--display);
+  font-weight: 700;
+}
+
+.key-button {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.key-button.is-white-key {
+  z-index: 1;
+  width: calc(100% / 7);
+  height: 100%;
+  padding: 0 2px 12px;
+  border: 0;
+  border-right: 1px solid var(--edge);
+  border-radius: 0 0 6px 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.key-button.is-black-key {
+  z-index: 2;
+  width: 9.5%;
+  height: 65%;
+  margin-left: -4.75%;
+  padding: 0 1px 9px;
+  border: 1px solid var(--on-accent);
+  border-top: 0;
+  border-radius: 0 0 7px 7px;
+  background: var(--on-accent);
+  color: var(--accent);
+  box-shadow: 0 4px 0 var(--string);
+  font-size: 13px;
+}
+
+.key-button.is-white-key:hover { background: var(--chip); }
+.key-button.is-black-key:hover {
+  background: color-mix(in srgb, var(--on-accent) 88%, var(--accent));
+}
+.key-button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.key-button.is-selected {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.key-button.is-black-key.is-selected {
+  box-shadow: 0 4px 0 var(--accent-deep);
+}
+.key-button:focus-visible {
+  z-index: 3;
+  outline-offset: -4px;
+}
+
+.type-button {
   min-height: 44px;
   border: 2px solid transparent;
   border-radius: 999px;
   background: var(--chip);
   color: var(--ink);
   cursor: pointer;
-  font-family: var(--display);
   font-size: 15px;
-  font-weight: 700;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
     transform 0.2s var(--spring), box-shadow 0.2s ease;
 }
 
-.key-button { width: auto; padding: 0 6px; }
 .type-button { padding: 0 8px; }
-.key-button:hover, .type-button:hover { border-color: var(--edge); background: var(--surface); transform: translateY(-2px); }
-.key-button:active, .type-button:active { transform: scale(0.93); }
+.type-button:hover { border-color: var(--edge); background: var(--surface); transform: translateY(-2px); }
+.type-button:active { transform: scale(0.93); }
 
-.key-button.is-selected, .type-button.is-selected {
+.type-button.is-selected {
   border-color: var(--edge);
   background: var(--accent);
   color: var(--on-accent);
@@ -1007,7 +1078,6 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
     border-left: 0;
   }
 
-  .key-selector { gap: 8px; }
   .category-filter {
     margin-right: 0;
     padding-right: 0;
@@ -1097,10 +1167,10 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 @media (max-width: 360px) {
   .page { width: calc(100% - 24px); }
   .controls { padding: 14px 12px; }
-  .key-selector,
   .type-selector { gap: 6px; }
-  .controls-root .key-selector { margin-inline: -13px; }
-  .key-button,
+  .controls-root .key-selector { margin-inline: -2px; }
+  .key-button.is-white-key { font-size: 14px; }
+  .key-button.is-black-key { width: 10.5%; margin-left: -5.25%; font-size: 12px; }
   .type-button { min-width: 0; font-size: 14px; }
   .category-filter { margin-right: 0; gap: 15px; padding-right: 0; }
   .compact-controls { width: calc(100% - 12px); }
