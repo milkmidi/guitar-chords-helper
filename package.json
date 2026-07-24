@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
+    "type-check": "tsc -b --noEmit",
     "test": "vitest run",
+    "build": "vite build",
+    "harness-verify": "npm run lint && npm run type-check && npm run test && npm run build && echo '✅ Harness Verify PASS'",
+    "preview": "vite preview",
     "extract-voicings": "node scripts/extract-voicings.mjs"
   },
   "dependencies": {
