@@ -14,7 +14,7 @@
 - Pure logic goes in `src/lib/` with colocated `*.test.ts`; audio, SVG, RAF scheduler, and drag are verified manually in the browser (project testing policy).
 - Use existing design tokens, never hardcoded colors: `--surface`, `--ink`, `--chip`, `--line`, `--muted`, `--accent`, `--on-accent`, `--r-card`, `--spring`, `--display`, `--mono`.
 - Follow the existing component convention: semantic `className`s, `is-*` state modifiers, `aria-pressed` on toggles.
-- BPM range is 30–300. Dial sweep is 45°–315°. Click = square wave, 800 Hz accented downbeat / 400 Hz otherwise.
+- BPM range is 60–300. Dial sweep is 45°–315°. Click = square wave, 800 Hz accented downbeat / 400 Hz otherwise.
 - `npm run build` (tsc) and `npm run lint` (oxlint) must pass before the final commit.
 
 ---
@@ -28,7 +28,7 @@
 **Interfaces:**
 - Consumes: nothing.
 - Produces:
-  - `BPM_MIN = 30`, `BPM_MAX = 300` (numbers)
+  - `BPM_MIN = 60`, `BPM_MAX = 300` (numbers)
   - `clampBpm(bpm: number): number`
   - `getDegree(clientX: number, clientY: number, centerX: number, centerY: number): number`
   - `bpmFromAngle(angle: number): number`
@@ -49,10 +49,10 @@ describe("clampBpm", () => {
 });
 
 describe("bpmFromAngle", () => {
-  it("maps the start angle (45) to BPM_MIN", () => expect(bpmFromAngle(45)).toBe(30));
+  it("maps the start angle (45) to BPM_MIN", () => expect(bpmFromAngle(45)).toBe(60));
   it("maps the end angle (315) to BPM_MAX", () => expect(bpmFromAngle(315)).toBe(300));
-  it("maps the mid angle (180) to the midpoint BPM", () => expect(bpmFromAngle(180)).toBe(165));
-  it("clamps angles below the start", () => expect(bpmFromAngle(0)).toBe(30));
+  it("maps the mid angle (180) to the midpoint BPM", () => expect(bpmFromAngle(180)).toBe(180));
+  it("clamps angles below the start", () => expect(bpmFromAngle(0)).toBe(60));
   it("clamps angles above the end", () => expect(bpmFromAngle(400)).toBe(300));
 });
 
@@ -83,7 +83,7 @@ Expected: FAIL — cannot find module `./metronome` / exports undefined.
 Create `src/lib/metronome.ts`:
 
 ```ts
-export const BPM_MIN = 30;
+export const BPM_MIN = 60;
 export const BPM_MAX = 300;
 
 const RADIANS_TO_DEGREES = 180 / Math.PI;
@@ -109,7 +109,7 @@ export function getDegree(clientX: number, clientY: number, centerX: number, cen
   return degree;
 }
 
-/** 將儀表角度（度）對應成 30–300 BPM。 */
+/** 將儀表角度（度）對應成 60–300 BPM。 */
 export function bpmFromAngle(angle: number): number {
   const clamped = Math.max(DIAL_START_ANGLE, Math.min(DIAL_END_ANGLE, angle));
   const t = (clamped - DIAL_START_ANGLE) / (DIAL_END_ANGLE - DIAL_START_ANGLE);
@@ -117,7 +117,7 @@ export function bpmFromAngle(angle: number): number {
 }
 
 /**
- * 由點擊時間戳（毫秒）平均出 BPM；不足 2 下或結果超出 30–300 時回傳 null。
+ * 由點擊時間戳（毫秒）平均出 BPM；不足 2 下或結果超出 60–300 時回傳 null。
  */
 export function bpmFromTaps(taps: number[]): number | null {
   if (taps.length < 2) return null;
@@ -475,7 +475,7 @@ const MutedIcon = (
 );
 
 export default function Metronome() {
-  const [bpm, setBpm] = useState(75);
+  const [bpm, setBpm] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(0);
   const [beats, setBeats] = useState(4);
@@ -1012,7 +1012,7 @@ Expected: type-check passes, lint clean, all tests (including `metronome.test.ts
 Run: `npm run dev`, open http://localhost:3000, and confirm:
 - FAB shows at bottom-right; clicking it opens the panel near the FAB, clicking again (or ✕, or Escape) closes it.
 - Dragging the panel header moves it; it stays within the viewport; dial/buttons remain clickable.
-- Dragging the dial changes BPM (30–300); TAP infers BPM; +/- step by 1 and clamp.
+- Dragging the dial changes BPM (60–300); TAP infers BPM; +/- step by 1 and clamp.
 - Play produces on-time clicks with an accented (higher-pitch) downbeat; beat dots track the current beat; the downbeat dot is distinguished.
 - Switching 3/4/5 resets the beat and re-renders the right number of dots.
 - Mute silences clicks and shows the muted icon; unmute restores sound.

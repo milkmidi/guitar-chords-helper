@@ -1201,12 +1201,12 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 .metronome-step {
   width: 36px;
   height: 36px;
+  display: grid;
+  place-items: center;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
-  font-size: 20px;
-  line-height: 1;
   cursor: pointer;
 }
 .metronome-step:hover {
@@ -1352,9 +1352,9 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   cursor: grabbing;
 }
 .metronome-panel-grip {
+  display: grid;
+  place-items: center;
   color: var(--muted);
-  font-size: 14px;
-  letter-spacing: 2px;
 }
 .metronome-panel-title {
   flex: 1;
@@ -1373,27 +1373,6 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-}
-.metronome-compact-icon {
-  width: 22px;
-  height: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-}
-.metronome-compact-icon span {
-  width: 3px;
-  height: 3px;
-  border-radius: 999px;
-  background: currentColor;
-  opacity: 0.5;
-}
-.metronome-compact-icon span.is-downbeat {
-  background: var(--accent);
-  opacity: 1;
 }
 .metronome-panel-compact:hover,
 .metronome-panel-close:hover {

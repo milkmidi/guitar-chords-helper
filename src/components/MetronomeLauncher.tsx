@@ -1,33 +1,7 @@
+import { GripVertical, PanelTopClose, X } from "lucide-react";
 import { useMetronomePanel } from "../hooks/useMetronomePanel";
 import Metronome from "./Metronome";
-
-const MusicIcon = (
-  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-    <path
-      d="M9 18V5l10-2v13"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle cx="6" cy="18" r="3" fill="currentColor" />
-    <circle cx="16" cy="16" r="3" fill="currentColor" />
-  </svg>
-);
-const CloseIcon = (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <path d="M6 6l12 12M18 6L6 18" />
-  </svg>
-);
-const CompactModeIcon = (
-  <span className="metronome-compact-icon" aria-hidden="true">
-    <span className="is-downbeat" />
-    <span />
-    <span />
-    <span />
-  </span>
-);
+import { Metronome as MetronomeIcon } from 'lucide-react';
 
 export default function MetronomeLauncher() {
   const {
@@ -54,7 +28,7 @@ export default function MetronomeLauncher() {
         >
           <div className="metronome-panel-header" hidden={compact} {...dragHandleProps}>
             <span className="metronome-panel-grip" aria-hidden="true">
-              ⠿
+              <GripVertical size={16} strokeWidth={1.8} />
             </span>
             <span className="metronome-panel-title">節拍器</span>
             <button
@@ -65,7 +39,7 @@ export default function MetronomeLauncher() {
               aria-label="切換至精簡模式"
               title="只顯示節拍點"
             >
-              {CompactModeIcon}
+              <PanelTopClose size={18} strokeWidth={1.8} aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -74,7 +48,7 @@ export default function MetronomeLauncher() {
               onPointerDown={(e) => e.stopPropagation()}
               aria-label="關閉節拍器"
             >
-              {CloseIcon}
+              <X size={18} strokeWidth={1.8} aria-hidden="true" />
             </button>
           </div>
           <Metronome
@@ -92,7 +66,7 @@ export default function MetronomeLauncher() {
           aria-pressed={open}
           aria-label={open ? "關閉節拍器" : "開啟節拍器"}
         >
-          {MusicIcon}
+          <MetronomeIcon />
         </button>
       )}
     </>

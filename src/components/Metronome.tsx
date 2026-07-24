@@ -5,33 +5,12 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { Minus, Pause, Play, Plus, Volume2, VolumeX } from "lucide-react";
 import { useMetronome } from "../hooks/useMetronome";
 import { BPM_MAX, BPM_MIN, bpmFromAngle, bpmFromTaps, clampBpm, getDegree } from "../lib/metronome";
 import { Pie } from "./Pie";
 
 const BEAT_OPTIONS = [3, 4, 5];
-
-const PlayIcon = (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
-    <path d="M8 5v14l11-7z" />
-  </svg>
-);
-const PauseIcon = (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
-    <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-  </svg>
-);
-const VolumeIcon = (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-    <path d="M3 9v6h4l5 5V4L7 9H3z" />
-  </svg>
-);
-const MutedIcon = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-    <path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" />
-    <path d="M16 8l5 8M21 8l-5 8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-  </svg>
-);
 
 interface Props {
   compact: boolean;
@@ -67,7 +46,7 @@ export default function Metronome({
   onCompactActivate,
   compactDragHandleProps,
 }: Props) {
-  const [bpm, setBpm] = useState(75);
+  const [bpm, setBpm] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(0);
   const [beats, setBeats] = useState(4);
@@ -167,7 +146,7 @@ export default function Metronome({
           onClick={() => setBpm((b) => clampBpm(b - 1))}
           aria-label="降低 BPM"
         >
-          −
+          <Minus size={20} strokeWidth={2} aria-hidden="true" />
         </button>
         <div className="metronome-bpm-value">
           {bpm}
@@ -179,7 +158,7 @@ export default function Metronome({
           onClick={() => setBpm((b) => clampBpm(b + 1))}
           aria-label="提高 BPM"
         >
-          +
+          <Plus size={20} strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
 
@@ -210,7 +189,11 @@ export default function Metronome({
           aria-pressed={muted}
           aria-label={muted ? "取消靜音" : "靜音"}
         >
-          {muted ? MutedIcon : VolumeIcon}
+          {muted ? (
+            <VolumeX size={20} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <Volume2 size={20} strokeWidth={2} aria-hidden="true" />
+          )}
         </button>
         <button
           type="button"
@@ -219,7 +202,11 @@ export default function Metronome({
           aria-pressed={isPlaying}
           aria-label={isPlaying ? "暫停" : "播放"}
         >
-          {isPlaying ? PauseIcon : PlayIcon}
+          {isPlaying ? (
+            <Pause size={22} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <Play size={22} strokeWidth={2} aria-hidden="true" />
+          )}
         </button>
         <span className="metronome-controls-spacer" aria-hidden="true" />
       </div>

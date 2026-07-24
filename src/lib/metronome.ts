@@ -1,4 +1,4 @@
-export const BPM_MIN = 30;
+export const BPM_MIN = 60;
 export const BPM_MAX = 300;
 
 const RADIANS_TO_DEGREES = 180 / Math.PI;
@@ -25,7 +25,7 @@ export function getDegree(clientX: number, clientY: number, centerX: number, cen
   return degree;
 }
 
-/** 將儀表角度（度）對應成 30–300 BPM。 */
+/** 將儀表角度（度）對應成 60–300 BPM。 */
 export function bpmFromAngle(angle: number): number {
   const clamped = Math.max(DIAL_START_ANGLE, Math.min(DIAL_END_ANGLE, angle));
   const t = (clamped - DIAL_START_ANGLE) / (DIAL_END_ANGLE - DIAL_START_ANGLE);
@@ -33,7 +33,7 @@ export function bpmFromAngle(angle: number): number {
 }
 
 /**
- * 由點擊時間戳（毫秒）平均出 BPM；不足 2 下或結果超出 30–300 時回傳 null。
+ * 由點擊時間戳（毫秒）平均出 BPM；不足 2 下或結果超出 60–300 時回傳 null。
  */
 export function bpmFromTaps(taps: number[]): number | null {
   if (taps.length < 2) return null;

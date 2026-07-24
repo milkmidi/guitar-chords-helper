@@ -42,7 +42,7 @@ src/App.tsx                       render <MetronomeLauncher /> (one line)
 
 - **gsap**: the prototype only uses `gsap.utils.{pipe,clamp,normalize,mapRange,snap}`
   to map a dial angle to BPM. This collapses to plain math in `bpmFromAngle`:
-  clamp angle to `[45, 315]`, normalize to `0..1`, map to `[30, 300]`, round.
+  clamp angle to `[45, 315]`, normalize to `0..1`, map to `[60, 300]`, round.
 - **lucide-react**: icons (play, pause, volume, music, drag handle, close) are
   inlined as small SVGs, matching the project convention (`Fretboard`, `ChordDiagram`
   already inline SVG). No icon library.
@@ -74,7 +74,7 @@ works on mobile.
 currentBeat, timeSignature, muted) lives in `Metronome.tsx`. The component stays
 mounted when switching between expanded and compact modes, so playback and all
 metronome state continue uninterrupted. Closing unmounts it and restores the
-existing defaults the next time it opens: 75 BPM, 4/4, unmuted, and paused.
+existing defaults the next time it opens: 120 BPM, 4/4, unmuted, and paused.
 
 `App.tsx` only renders `<MetronomeLauncher />`, mirroring the existing "each
 section owns its instrument-local state" pattern.
@@ -86,9 +86,11 @@ section owns its instrument-local state" pattern.
 - In expanded mode, the panel has a **header bar** containing a drag-handle
   glyph, title (節拍器), compact-mode button, and close (✕) button. Dragging grabs
   the **header only**, so the dial and buttons stay interactive.
-- The compact-mode button previews its result with a small pill containing four
-  beat dots, with the first dot accented. It does not use a minus or window
-  minimize symbol. Its tooltip reads `只顯示節拍點`.
+- Header actions use Lucide's `GripVertical`, `PanelTopClose`, and `X` icons with
+  a consistent 1.8 stroke weight.
+- The compact-mode button uses Lucide's `PanelTopClose`, which communicates
+  collapsing the panel content without suggesting an operating-system minimize
+  action. Its tooltip reads `只顯示節拍點`.
 - `useDraggable` tracks `{x, y}`, updates on pointer move, and **clamps** so the
   panel stays fully within the viewport (accounting for panel width/height).
 - **FAB**: fixed at bottom-right, accent-filled circular button with a `♪` icon,
@@ -127,9 +129,9 @@ section owns its instrument-local state" pattern.
 All four requested feature groups:
 
 1. **BPM dial (drag)** — circular `Pie` arc; drag anywhere on the dial sets BPM
-   30–300 via `bpmFromAngle`.
+   60–300 via `bpmFromAngle`.
 2. **Tap tempo** — center TAP button; `bpmFromTaps` averages the last up-to-4 tap
-   intervals, applies result only if within 30–300.
+   intervals, applies result only if within 60–300.
 3. **Time signature 3/4/5** — buttons selecting beat count; beat dots render with
    an accented downbeat; changing resets the current beat.
 4. **+/- and mute** — step buttons (±1 BPM, clamped) and a mute toggle.
@@ -158,10 +160,10 @@ the RAF scheduler, and drag are verified manually in the browser.
 
 `metronome.test.ts` covers:
 
-- `bpmFromAngle`: boundary angles (45→30, 315→300, mid→~165), clamping below 45
+- `bpmFromAngle`: boundary angles (45→60, 315→300, mid→180), clamping below 45
   and above 315.
 - `getDegree`: known quadrant results.
-- `bpmFromTaps`: correct averaging, the 30–300 guard (rejects out-of-range),
+- `bpmFromTaps`: correct averaging, the 60–300 guard (rejects out-of-range),
   behavior with fewer than 2 taps.
 - `clampBpm`: 30 / 300 bounds.
 
@@ -178,5 +180,5 @@ Manual verification checklist:
 - Compact panel distinguishes click-to-expand from drag, retains its position
   through both mode changes, and re-clamps after resize or orientation change.
 - Compact panel supports pointer, Enter, and Space expansion; Escape closes it.
-- Closing and reopening resets the metronome to 75 BPM, 4/4, unmuted, and paused.
+- Closing and reopening resets the metronome to 120 BPM, 4/4, unmuted, and paused.
 - Works on a touch device (pointer events).
