@@ -726,6 +726,7 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 .chord-search-dialog {
   width: min(640px, calc(100% - 32px));
   max-height: min(680px, calc(100dvh - 64px));
+  margin: auto;
   padding: 0;
   overflow: hidden;
   border: 2px solid var(--edge);
@@ -820,23 +821,23 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 .search-result-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 
 .search-result-button {
-  display: flex;
+  display: grid;
   min-height: 56px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  place-content: center;
+  justify-items: center;
+  gap: 2px;
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--chip);
   color: var(--ink);
   cursor: pointer;
-  text-align: left;
+  text-align: center;
 }
 .search-result-button:hover,
 .search-result-button:focus-visible { border-color: var(--edge); background: var(--surface); }
 .search-result-button span { font-family: var(--display); font-size: 15px; font-weight: 800; }
-.search-result-button small { overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: 9px; text-overflow: ellipsis; }
+.search-result-button small { max-width: 100%; overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: 9px; text-overflow: ellipsis; }
 
 .search-empty {
   display: grid;
