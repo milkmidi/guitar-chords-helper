@@ -3,6 +3,7 @@ import ChordCatalogSelector from "./components/ChordCatalogSelector";
 import ChordNotesDisplay from "./components/ChordNotesDisplay";
 import GuitarSection from "./components/GuitarSection";
 import KeySelector from "./components/KeySelector";
+import MetronomeLauncher from "./components/MetronomeLauncher";
 import PianoSection from "./components/PianoSection";
 import { useChordCatalog } from "./hooks/useChordCatalog";
 import { useRootShortcut } from "./hooks/useRootShortcut";
@@ -89,6 +90,8 @@ export default function App() {
         </span>
         <span>點擊音符或按法即可播放，聲音由 Web Audio 即時合成</span>
       </footer>
+
+      <MetronomeLauncher />
     </main>
   );
 }

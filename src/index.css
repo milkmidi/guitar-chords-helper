@@ -841,3 +841,77 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 .metronome-play:active {
   transform: scale(0.94);
 }
+
+.metronome-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s var(--spring);
+}
+.metronome-fab:hover {
+  transform: scale(1.06);
+}
+.metronome-fab:active {
+  transform: scale(0.96);
+}
+.metronome-panel {
+  position: fixed;
+  z-index: 60;
+  width: 300px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+.metronome-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--chip);
+  border-bottom: 1px solid var(--line);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.metronome-panel-header:active {
+  cursor: grabbing;
+}
+.metronome-panel-grip {
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+.metronome-panel-title {
+  flex: 1;
+  font-family: var(--display);
+  font-size: 14px;
+  color: var(--ink);
+}
+.metronome-panel-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.metronome-panel-close:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
