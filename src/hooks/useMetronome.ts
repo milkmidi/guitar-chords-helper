@@ -10,11 +10,9 @@ interface UseMetronomeOptions {
 }
 
 export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetronomeOptions): void {
-  // bpm / beats / muted / onBeat 都用 ref 讀取，變動時不重啟排程迴圈（避免改拍速時爆音、拍點歸零）。
+  // bpm / muted / onBeat 用 ref 讀取，變動時不重啟排程迴圈；拍號改變則刻意重啟並回到重拍。
   const bpmRef = useRef(bpm);
   bpmRef.current = bpm;
-  const beatsRef = useRef(beats);
-  beatsRef.current = beats;
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
   const onBeatRef = useRef(onBeat);
@@ -39,7 +37,7 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
       while (now >= nextNoteTime) {
         if (!mutedRef.current) playClick(beat === 0);
         onBeatRef.current(beat);
-        beat = (beat + 1) % beatsRef.current;
+        beat = (beat + 1) % beats;
         nextNoteTime += interval;
       }
       rafId = requestAnimationFrame(scheduler);
@@ -49,5 +47,5 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [isPlaying]);
+  }, [beats, isPlaying]);
 }

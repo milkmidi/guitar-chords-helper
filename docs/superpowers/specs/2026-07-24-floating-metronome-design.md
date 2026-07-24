@@ -29,8 +29,8 @@ src/lib/metronome.test.ts         vitest coverage for the above
 src/hooks/useMetronome.ts         precise requestAnimationFrame scheduler (ported), calls audio.playClick
 src/hooks/useDraggable.ts         pointer-based drag with viewport clamping (reusable)
 src/components/Pie.tsx            dial arc SVG (accent-token colored)
-src/components/Metronome.tsx      metronome UI: dial, BPM readout, TAP, time-sig, +/-, mute, play/pause
-src/components/MetronomeLauncher.tsx  owns open state; renders FAB + floating draggable panel
+src/components/Metronome.tsx      metronome UI: full controls or compact beat-dot view
+src/components/MetronomeLauncher.tsx  owns display mode and position; renders FAB + floating draggable panel
 src/lib/audio.ts                  add playClick(isAccent) using the shared AudioContext
 src/index.css                     metronome styles using existing design tokens
 src/App.tsx                       render <MetronomeLauncher /> (one line)
@@ -42,7 +42,7 @@ src/App.tsx                       render <MetronomeLauncher /> (one line)
 
 - **gsap**: the prototype only uses `gsap.utils.{pipe,clamp,normalize,mapRange,snap}`
   to map a dial angle to BPM. This collapses to plain math in `bpmFromAngle`:
-  clamp angle to `[45, 315]`, normalize to `0..1`, map to `[30, 300]`, round.
+  clamp angle to `[45, 315]`, normalize to `0..1`, map to `[60, 300]`, round.
 - **lucide-react**: icons (play, pause, volume, music, drag handle, close) are
   inlined as small SVGs, matching the project convention (`Fretboard`, `ChordDiagram`
   already inline SVG). No icon library.
@@ -69,18 +69,28 @@ works on mobile.
 
 ### State ownership
 
-`MetronomeLauncher` owns `open` (boolean) and the panel position. The metronome's
-own state (bpm, isPlaying, currentBeat, timeSignature, muted) lives in
-`Metronome.tsx`. `App.tsx` only renders `<MetronomeLauncher />`, mirroring the
-existing "each section owns its instrument-local state" pattern.
+`MetronomeLauncher` owns the panel display mode (`closed`, `expanded`, or
+`compact`) and panel position. The metronome's own state (bpm, isPlaying,
+currentBeat, timeSignature, muted) lives in `Metronome.tsx`. The component stays
+mounted when switching between expanded and compact modes, so playback and all
+metronome state continue uninterrupted. Closing unmounts it and restores the
+existing defaults the next time it opens: 120 BPM, 4/4, unmuted, and paused.
+
+`App.tsx` only renders `<MetronomeLauncher />`, mirroring the existing "each
+section owns its instrument-local state" pattern.
 
 ## Floating panel & drag behavior
 
 - Panel is `position: fixed`, rendered as a `--surface` card with the project's
   border/shadow tokens.
-- Panel has a **header bar** containing a drag-handle glyph + title (節拍器) and a
-  close (✕) button. Dragging grabs the **header only**, so the dial and buttons
-  stay interactive.
+- In expanded mode, the panel has a **header bar** containing a drag-handle
+  glyph, title (節拍器), compact-mode button, and close (✕) button. Dragging grabs
+  the **header only**, so the dial and buttons stay interactive.
+- Header actions use Lucide's `GripVertical`, `PanelTopClose`, and `X` icons with
+  a consistent 1.8 stroke weight.
+- The compact-mode button uses Lucide's `PanelTopClose`, which communicates
+  collapsing the panel content without suggesting an operating-system minimize
+  action. Its tooltip reads `只顯示節拍點`.
 - `useDraggable` tracks `{x, y}`, updates on pointer move, and **clamps** so the
   panel stays fully within the viewport (accounting for panel width/height).
 - **FAB**: fixed at bottom-right, accent-filled circular button with a `♪` icon,
@@ -88,14 +98,40 @@ existing "each section owns its instrument-local state" pattern.
   position near the FAB (e.g. bottom-right inset). Reopening keeps the last position.
 - Escape key or the ✕ button closes the panel.
 
+## Compact mode
+
+- Compact mode is entered only when the user presses the compact-mode button in the
+  expanded panel header. Playback, BPM, time signature, mute state, and current
+  beat are preserved. Scrolling, viewport changes, playback changes, and focus
+  changes never enter compact mode automatically.
+- The compact panel is a fixed-size pill of approximately **104 × 44 px**. Its
+  only visible content is the centered beat-dot row; it contains no title, drag
+  glyph, icon, BPM value, or playback control.
+- While playing, the active dot advances with the beat. While paused, the dots
+  remain still and the first dot retains the downbeat distinction. Muting audio
+  does not stop the visual beat animation and adds no mute icon.
+- A short click or tap anywhere on the compact panel restores expanded mode.
+  Dragging anywhere on it moves the panel. A movement threshold distinguishes a
+  drag from a click so releasing a drag does not expand the panel.
+- The FAB is hidden in compact mode, leaving the beat-dot pill as the only
+  metronome element on screen. Closing requires expanding the panel and using
+  the existing close control; keyboard Escape continues to close an open panel.
+- Entering compact mode and expanding retain the panel's current top-left position. The
+  position is re-clamped after either size change and after viewport resize or
+  orientation change so the whole panel remains visible.
+- The beat-dot row supports 3, 4, or 5 dots without changing the pill width.
+- The compact surface is an accessible button named `展開節拍器`; Enter and
+  Space restore expanded mode. The decorative dots are hidden from the
+  accessibility tree.
+
 ## Metronome features
 
 All four requested feature groups:
 
 1. **BPM dial (drag)** — circular `Pie` arc; drag anywhere on the dial sets BPM
-   30–300 via `bpmFromAngle`.
+   60–300 via `bpmFromAngle`.
 2. **Tap tempo** — center TAP button; `bpmFromTaps` averages the last up-to-4 tap
-   intervals, applies result only if within 30–300.
+   intervals, applies result only if within 60–300.
 3. **Time signature 3/4/5** — buttons selecting beat count; beat dots render with
    an accented downbeat; changing resets the current beat.
 4. **+/- and mute** — step buttons (±1 BPM, clamped) and a mute toggle.
@@ -113,8 +149,9 @@ other beats and from the active-beat highlight.
   context `currentTime`) to avoid `setInterval` drift.
 - Maintains `nextNoteTime` and advances by `60 / bpm`; on each due beat it calls
   `playClick(beat === 0)` (unless muted) and reports the beat via `onBeat`.
-- Restarts cleanly when `isPlaying`, `bpm`, or `beats` change; cancels the RAF and
-  resets the beat to 0 on stop.
+- Restarts cleanly when `isPlaying` or `beats` change; a time-signature change
+  starts again from the downbeat. BPM changes are read through a ref and apply
+  to the next calculated interval without resetting the beat sequence.
 
 ## Testing
 
@@ -123,10 +160,10 @@ the RAF scheduler, and drag are verified manually in the browser.
 
 `metronome.test.ts` covers:
 
-- `bpmFromAngle`: boundary angles (45→30, 315→300, mid→~165), clamping below 45
+- `bpmFromAngle`: boundary angles (45→60, 315→300, mid→180), clamping below 45
   and above 315.
 - `getDegree`: known quadrant results.
-- `bpmFromTaps`: correct averaging, the 30–300 guard (rejects out-of-range),
+- `bpmFromTaps`: correct averaging, the 60–300 guard (rejects out-of-range),
   behavior with fewer than 2 taps.
 - `clampBpm`: 30 / 300 bounds.
 
@@ -136,4 +173,12 @@ Manual verification checklist:
 - Dial drag and TAP both change BPM; +/- step; mute silences clicks.
 - Play produces on-time clicks with accented downbeat; beat dots track the beat;
   time-signature change resets and re-accents correctly.
+- Entering compact mode keeps playback and settings intact; compact mode shows only the
+  fixed-size beat-dot pill and hides the FAB.
+- Compact beat dots animate while playing, remain static while paused, and
+  continue animating while muted.
+- Compact panel distinguishes click-to-expand from drag, retains its position
+  through both mode changes, and re-clamps after resize or orientation change.
+- Compact panel supports pointer, Enter, and Space expansion; Escape closes it.
+- Closing and reopening resets the metronome to 120 BPM, 4/4, unmuted, and paused.
 - Works on a touch device (pointer events).

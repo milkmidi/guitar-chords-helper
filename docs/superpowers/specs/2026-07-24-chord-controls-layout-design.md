@@ -28,9 +28,9 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 ## 已確認決策
 
 1. `Show All` 不再是預設分類，也不出現在正常分類 tabs。
-2. 桌面保留全部 12 個根音，使用 `6 × 2` grid。
+2. 桌面保留全部 12 個根音，使用一個八度的鋼琴鍵盤排列。
 3. 桌面 controls 使用單一面板，左側根音、右側分類與和弦。
-4. 手機根音使用 `6 × 2` grid，和弦類型使用三欄 grid，不再水平捲動。
+4. 手機根音使用縮放後的一個八度鋼琴鍵盤，和弦類型使用三欄 grid，不再水平捲動。
 5. 分類使用底線 tabs，不再使用 pill buttons。
 6. 全部 36 個和弦移入可搜尋的「全部和弦」面板。
 7. 桌面搜尋使用置中的 command dialog，手機使用 bottom sheet。
@@ -47,8 +47,8 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 ```text
 ┌──────────────────────────────────────────────────────────┐
 │ 根音，約 300px       │ Major  Minor  Dominant  ...  全部和弦 │
-│ C   C#  D   D#  E  F │                                    │
-│ F#  G   G#  A   A# B │ 目前分類的和弦 grid                 │
+│   C# D#   F# G# A#   │                                    │
+│ C  D  E  F  G  A  B  │ 目前分類的和弦 grid                 │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -65,8 +65,8 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 ```text
 ┌──────────────────────────┐
 │ 根音                      │
-│ C  C# D  D# E  F          │
-│ F# G  G# A  A# B          │
+│   C# D#   F# G# A#         │
+│ C  D  E  F  G  A  B       │
 ├──────────────────────────┤
 │ Major Minor Dominant ...  │  可水平捲動
 │ maj     6      6/9        │
@@ -77,9 +77,8 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 ```
 
 - 控制面板改為上下排列，垂直分隔線轉成水平分隔線。
-- 根音固定 `6 × 2`，12 個選項全部可見。
-- 360px 以下將頁面左右 gutter 降為 12px，根音 grid gap 降為 6px，讓每個按鈕仍可維持
-  至少 44px 寬。
+- 根音固定顯示一個八度，12 個選項全部可見。
+- 360px 以下將頁面左右 gutter 降為 12px，並縮小黑鍵寬度與標籤字級，保持完整鍵盤且不裁切。
 - category tabs 維持單列水平捲動。
 - 和弦類型固定三欄 grid，單一分類最多三列。
 - 「全部和弦」放在分類列尾端，保持可見文字，不只顯示 icon。
@@ -89,9 +88,10 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 
 ### 根音
 
-- 保留現有 pill button 與選中狀態。
-- 每個按鈕最小高度 44px。
-- desktop 與 mobile 都採固定 `6 × 2` 位置，建立一致的位置記憶。
+- 改為一個八度的鋼琴鍵盤，七個白鍵依序為 C、D、E、F、G、A、B。
+- C♯、D♯、F♯、G♯、A♯ 疊在正確的白鍵交界，形成真實鍵盤位置。
+- 選中鍵使用現有 accent 色，保留 `aria-pressed` 與半音順序的鍵盤 focus 流程。
+- desktop 與 mobile 使用相同鍵位，建立一致的位置記憶。
 
 ### 分類
 
@@ -183,7 +183,7 @@ button 所造成的擁擠感。新 layout 應保留快速切換能力、鍵盤�
 [ C ▾ ] [ maj7 ▾ ] [ 上一個 ] [ 下一個 ] [ 搜尋 ]
 ```
 
-- 根音 trigger 開啟 `6 × 2` floating selector。
+- 根音 trigger 開啟一個八度的鋼琴鍵盤 selector。
 - 和弦 trigger 開啟目前分類的和弦 selector。
 - 上一個與下一個只在目前分類內循環。
 - 搜尋開啟全部和弦 dialog。
@@ -311,8 +311,8 @@ ChordControls
 
 ## 響應式與碰撞規則
 
-- 320px viewport 使用 12px page gutter 與 6px root-grid gap，不得產生 document-level 水平捲動。
-- 390px viewport 應完整顯示 `6 × 2` 根音 grid 與三欄和弦 grid。
+- 320px viewport 使用 12px page gutter，鋼琴鍵盤不得產生 document-level 水平捲動。
+- 390px viewport 應完整顯示一個八度的根音鍵盤與三欄和弦 grid。
 - 768px 是 controls 從上下排列切換成左右分欄的 breakpoint。
 - compact bottom dock 不得遮住：
   - 最後一段內容。
@@ -363,13 +363,13 @@ ChordControls
 
 - Desktop：
   - controls 是單一左右分欄面板。
-  - 根音是 `6 × 2`。
+  - 根音是一個八度的鋼琴鍵盤，白鍵為 C 到 B，五個黑鍵位置正確。
   - 分類是底線 tabs。
   - 切分類只顯示該分類和弦。
   - controls 離開 viewport 後 compact bar 出現。
   - compact bar 可切根音、前後和弦與開啟搜尋。
 - Mobile 390px：
-  - 根音 `6 × 2` 全部可見。
+  - 一個八度的根音鍵盤全部可見且沒有水平捲動。
   - 和弦 grid 是三欄且不水平捲動。
   - 搜尋以 bottom sheet 顯示。
   - compact dock、metronome FAB 與 safe area 不重疊。

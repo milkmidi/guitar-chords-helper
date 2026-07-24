@@ -8,10 +8,10 @@ describe("clampBpm", () => {
 });
 
 describe("bpmFromAngle", () => {
-  it("maps the start angle (45) to BPM_MIN", () => expect(bpmFromAngle(45)).toBe(30));
+  it("maps the start angle (45) to BPM_MIN", () => expect(bpmFromAngle(45)).toBe(60));
   it("maps the end angle (315) to BPM_MAX", () => expect(bpmFromAngle(315)).toBe(300));
-  it("maps the mid angle (180) to the midpoint BPM", () => expect(bpmFromAngle(180)).toBe(165));
-  it("clamps angles below the start", () => expect(bpmFromAngle(0)).toBe(30));
+  it("maps the mid angle (180) to the midpoint BPM", () => expect(bpmFromAngle(180)).toBe(180));
+  it("clamps angles below the start", () => expect(bpmFromAngle(0)).toBe(60));
   it("clamps angles above the end", () => expect(bpmFromAngle(400)).toBe(300));
 });
 
