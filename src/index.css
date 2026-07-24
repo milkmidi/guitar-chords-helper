@@ -688,3 +688,156 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   .key-button { width: 48px; }
   .page-footer { flex-direction: column; }
 }
+
+/* ---------- Metronome ---------- */
+.metronome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px 20px;
+  color: var(--ink);
+}
+.metronome-timesig {
+  font-family: var(--display);
+  font-size: 28px;
+  line-height: 1;
+}
+.metronome-dots {
+  display: flex;
+  gap: 8px;
+}
+.metronome-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease;
+}
+.metronome-dot.is-downbeat {
+  background: var(--muted);
+}
+.metronome-dot.is-active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+.metronome-meters {
+  display: flex;
+  gap: 8px;
+}
+.metronome-meter {
+  min-width: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+.metronome-meter.is-selected {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.metronome-bpm {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.metronome-step {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.metronome-step:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.metronome-bpm-value {
+  min-width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--display);
+  font-size: 40px;
+  line-height: 1;
+}
+.metronome-bpm-unit {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--muted);
+}
+.metronome-dial {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+}
+.metronome-tap {
+  position: absolute;
+  inset: 34px;
+  border: none;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.metronome-tap:hover {
+  color: var(--ink);
+}
+.metronome-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.metronome-controls-spacer {
+  width: 40px;
+}
+.metronome-mute {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.metronome-mute:hover {
+  color: var(--accent);
+}
+.metronome-mute.is-muted {
+  color: var(--line);
+}
+.metronome-play {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  transition: transform 0.12s var(--spring);
+}
+.metronome-play:active {
+  transform: scale(0.94);
+}
