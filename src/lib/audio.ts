@@ -69,3 +69,20 @@ export function playStrum(midi: number[], duration = 1.2): void {
     playFreq(audio, freq, start + i * STRUM_DELAY, duration, 0.15);
   });
 }
+
+// 節拍器 click：方波，重拍 800Hz、弱拍 400Hz，短促衰減。
+// 走共用的 ensureContext，繼承 iOS playback session 靜音處理。
+export function playClick(isAccent: boolean): void {
+  const audio = ensureContext();
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = "square";
+  osc.frequency.value = isAccent ? 800 : 400;
+  const start = audio.currentTime;
+  gain.gain.setValueAtTime(0.3, start);
+  gain.gain.exponentialRampToValueAtTime(0.001, start + 0.1);
+  osc.connect(gain);
+  gain.connect(audio.destination);
+  osc.start(start);
+  osc.stop(start + 0.1);
+}
