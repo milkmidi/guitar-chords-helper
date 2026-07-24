@@ -10,10 +10,7 @@ export type ChordCategory =
   | "augmented"
   | "altered";
 
-export type CategoryFilter = "all" | ChordCategory;
-
-export const CHORD_CATEGORIES: { id: CategoryFilter; label: string }[] = [
-  { id: "all", label: "Show All" },
+export const CHORD_CATEGORIES: { id: ChordCategory; label: string }[] = [
   { id: "major", label: "Major" },
   { id: "minor", label: "Minor" },
   { id: "dominant", label: "Dominant" },
@@ -81,6 +78,25 @@ export const CHORD_CATALOG: CatalogChord[] = [
   { symbol: "alt7", label: "alt", category: "altered" },
 ];
 
-export function chordsInCategory(filter: CategoryFilter): CatalogChord[] {
-  return filter === "all" ? CHORD_CATALOG : CHORD_CATALOG.filter((c) => c.category === filter);
+export function categoryForSymbol(symbol: string): ChordCategory | undefined {
+  return CHORD_CATALOG.find((chord) => chord.symbol === symbol)?.category;
+}
+
+export function normalizeChordQuery(query: string): string {
+  return query.trim().toLowerCase().replace(/♯/g, "#").replace(/♭/g, "b");
+}
+
+export function searchChordCatalog(query: string): CatalogChord[] {
+  const normalized = normalizeChordQuery(query);
+  if (!normalized) return CHORD_CATALOG;
+
+  return CHORD_CATALOG.filter((chord) =>
+    [chord.symbol, chord.label, chord.category].some((value) =>
+      normalizeChordQuery(value).includes(normalized),
+    ),
+  );
+}
+
+export function chordsInCategory(category: ChordCategory): CatalogChord[] {
+  return CHORD_CATALOG.filter((chord) => chord.category === category);
 }

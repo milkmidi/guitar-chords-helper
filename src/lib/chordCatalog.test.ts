@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   CHORD_CATALOG,
   CHORD_CATEGORIES,
+  categoryForSymbol,
   chordsInCategory,
+  normalizeChordQuery,
+  searchChordCatalog,
   toGlyph,
   type ChordCategory,
 } from "./chordCatalog";
@@ -34,19 +37,46 @@ describe("CHORD_CATALOG", () => {
 });
 
 describe("chordsInCategory", () => {
-  it("'all' 回傳全部", () => {
-    expect(chordsInCategory("all")).toHaveLength(CHORD_CATALOG.length);
-  });
-
   it("指定分類只回傳該分類", () => {
     const dom = chordsInCategory("dominant");
     expect(dom.every((c) => c.category === "dominant")).toBe(true);
   });
 });
 
+describe("categoryForSymbol", () => {
+  it("每個 catalog symbol 都能找出正確所屬分類", () => {
+    for (const chord of CHORD_CATALOG) {
+      expect(categoryForSymbol(chord.symbol)).toBe(chord.category);
+    }
+    expect(categoryForSymbol("missing")).toBeUndefined();
+  });
+});
+
+describe("searchChordCatalog", () => {
+  it("正規化大小寫與升降符號後依 catalog 順序搜尋", () => {
+    expect(normalizeChordQuery("  ♭9 ")).toBe("b9");
+    expect(searchChordCatalog("b9").map((chord) => chord.symbol)).toEqual(["7b9"]);
+    expect(searchChordCatalog("♭9").map((chord) => chord.symbol)).toEqual(["7b9"]);
+    expect(searchChordCatalog("MMAJ").map((chord) => chord.symbol)).toEqual(["mMaj7"]);
+    expect(searchChordCatalog("sus").map((chord) => chord.symbol)).toEqual([
+      "sus2",
+      "sus4",
+      "7sus4",
+    ]);
+    expect(searchChordCatalog("not-a-chord")).toEqual([]);
+  });
+});
+
 describe("CHORD_CATEGORIES", () => {
-  it("第一個是 Show All", () => {
-    expect(CHORD_CATEGORIES[0]).toEqual({ id: "all", label: "Show All" });
+  it("只包含六個正式分類，不把 Show All 當成狀態", () => {
+    expect(CHORD_CATEGORIES).toEqual([
+      { id: "major", label: "Major" },
+      { id: "minor", label: "Minor" },
+      { id: "dominant", label: "Dominant" },
+      { id: "diminished", label: "Diminished" },
+      { id: "augmented", label: "Augmented" },
+      { id: "altered", label: "Altered" },
+    ]);
   });
 });
 
