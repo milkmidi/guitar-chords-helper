@@ -29,6 +29,10 @@ export function useMetronome({ isPlaying, bpm, beats, muted, onBeat }: UseMetron
 
     const scheduler = (): void => {
       const now = getAudioTime();
+      // 分頁切到背景時 rAF 會暫停；回到前景避免一次補發上百拍的爆音，落後太多就直接跳到現在。
+      if (now - nextNoteTime > interval * 2) {
+        nextNoteTime = now;
+      }
       while (now >= nextNoteTime) {
         if (!mutedRef.current) playClick(beat === 0);
         onBeatRef.current(beat);
