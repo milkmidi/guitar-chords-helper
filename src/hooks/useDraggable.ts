@@ -8,7 +8,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { wasCompactPanelDragged } from "../lib/metronomePanel";
+import { wasPointerDragged } from "../lib/pointerGesture";
 
 export interface Position {
   x: number;
@@ -60,6 +60,7 @@ export function useDraggable<T extends HTMLElement>(
   const onPointerDown = useCallback(
     (e: ReactPointerEvent) => {
       e.preventDefault();
+      e.currentTarget.setPointerCapture?.(e.pointerId);
       // 上一段拖曳若未正常結束（多指、pointercancel 遺漏），先清乾淨再開始。
       cleanupRef.current?.();
 
@@ -70,7 +71,7 @@ export function useDraggable<T extends HTMLElement>(
       let didDrag = false;
 
       const onMove = (ev: PointerEvent) => {
-        if (wasCompactPanelDragged({ x: startX, y: startY }, { x: ev.clientX, y: ev.clientY })) {
+        if (wasPointerDragged({ x: startX, y: startY }, { x: ev.clientX, y: ev.clientY })) {
           didDrag = true;
         }
         setPosition(clamp(originX + (ev.clientX - startX), originY + (ev.clientY - startY)));
