@@ -38,6 +38,7 @@ export default function App() {
         rootLabel={selectedKey}
         typeLabel={typeLabel}
         notes={chord.notes}
+        degrees={chord.degrees}
         root={chord.root}
       />
 

@@ -83,8 +83,8 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
-  gap: 24px 40px;
-  padding: 36px 40px 34px;
+  gap: 18px 32px;
+  padding: 26px 32px 22px;
   border-radius: var(--r-block);
   background: var(--accent);
   color: var(--on-accent);
@@ -95,7 +95,7 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
   margin: 0;
   padding-bottom: 4px; /* descender reserve for italic type label (j, g, y) */
   font-family: var(--display);
-  font-size: clamp(56px, 9vw, 112px);
+  font-size: clamp(48px, 7.5vw, 92px);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
@@ -103,22 +103,46 @@ h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.1; }
 
 .chord-title .chord-type { font-style: italic; font-weight: 600; }
 
-.note-formula { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 14px; }
+.chord-formula { padding-bottom: 4px; }
+
+.formula-label {
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.note-formula { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.note-item {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+}
 
 .note-pill {
   display: grid;
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   place-items: center;
   border: 2.5px solid var(--on-accent);
   border-radius: 50%;
   color: var(--on-accent);
   font-family: var(--display);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .note-pill.is-root { background: var(--on-accent); color: var(--accent); }
+
+.note-degree {
+  min-height: 16px;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
 
 /* ---------- Controls ---------- */
 
@@ -653,9 +677,9 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 
 @media (max-width: 760px) {
   .page { width: min(100% - 32px, 1100px); padding-top: 28px; }
-  .chord-stage { padding: 26px 24px; box-shadow: 4px 4px 0 var(--edge); }
+  .chord-stage { padding: 18px 20px; box-shadow: 4px 4px 0 var(--edge); }
   .chord-title { padding-bottom: 2px; }
-  .note-formula { padding-bottom: 6px; }
+  .chord-formula { padding-bottom: 0; }
   .content-section { margin-top: 44px; }
 
   /* sticky 控制面板在手機上不能佔掉一整屏：
@@ -684,7 +708,10 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
 }
 
 @media (max-width: 480px) {
-  .note-pill { width: 46px; height: 46px; font-size: 15px; }
+  .note-formula { gap: 6px; }
+  .note-item { gap: 2px; }
+  .note-pill { width: 40px; height: 40px; font-size: 14px; }
+  .note-degree { font-size: 12px; }
   .key-button { width: 48px; }
   .page-footer { flex-direction: column; }
 }

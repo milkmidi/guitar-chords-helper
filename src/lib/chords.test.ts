@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHORD_CATALOG } from "./chordCatalog";
-import { getChordBySymbol, KEYS } from "./chords";
+import { getChordBySymbol, intervalToDegree, KEYS } from "./chords";
 
 describe("KEYS", () => {
   it("has 12 keys from C to B", () => {
@@ -13,6 +13,7 @@ describe("getChordBySymbol", () => {
     const info = getChordBySymbol("C", "major");
     expect(info.notes).toEqual(["C", "E", "G"]);
     expect(info.chromas).toEqual([0, 4, 7]);
+    expect(info.degrees).toEqual(["1", "3", "5"]);
     expect(info.root).toBe("C");
     expect(info.rootChroma).toBe(0);
   });
@@ -37,6 +38,19 @@ describe("getChordBySymbol", () => {
     expect(getChordBySymbol("C", "dim").notes).toEqual(["C", "Eb", "Gb"]);
   });
 
+  it("變化和弦會顯示升降級數", () => {
+    expect(getChordBySymbol("C", "7b9").degrees).toEqual(["1", "3", "5", "♭7", "♭9"]);
+    expect(getChordBySymbol("C", "13#11").degrees).toEqual([
+      "1",
+      "3",
+      "5",
+      "♭7",
+      "9",
+      "♯11",
+      "13",
+    ]);
+  });
+
   it("每個 key × catalog 和弦都能解出音（≥2 音、chroma 合法）", () => {
     for (const key of KEYS) {
       for (const { symbol } of CHORD_CATALOG) {
@@ -48,5 +62,14 @@ describe("getChordBySymbol", () => {
         }
       }
     }
+  });
+});
+
+describe("intervalToDegree", () => {
+  it("支援自然、升降與重降級數", () => {
+    expect(intervalToDegree("3M")).toBe("3");
+    expect(intervalToDegree("3m")).toBe("♭3");
+    expect(intervalToDegree("5A")).toBe("♯5");
+    expect(intervalToDegree("7d")).toBe("♭♭7");
   });
 });
