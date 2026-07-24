@@ -1,23 +1,22 @@
-import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from "react";
 
 export interface Position {
   x: number;
   y: number;
 }
 
-interface DragOrigin {
-  startX: number;
-  startY: number;
-  originX: number;
-  originY: number;
-}
-
 // 以 header 為把手拖曳浮動面板；限制在視窗範圍內。
 export function useDraggable<T extends HTMLElement>(initial: Position, panelRef: RefObject<T | null>) {
   const [position, setPosition] = useState<Position>(initial);
-  const origin = useRef<DragOrigin | null>(null);
-  const moveRef = useRef<(e: PointerEvent) => void>(() => {});
-  const upRef = useRef<() => void>(() => {});
+  // 記住目前這段拖曳的清理函式，元件卸載或下一次拖曳開始前用來移除殘留 listener。
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const clamp = useCallback(
     (x: number, y: number): Position => {
@@ -34,25 +33,34 @@ export function useDraggable<T extends HTMLElement>(initial: Position, panelRef:
   const onPointerDown = useCallback(
     (e: ReactPointerEvent) => {
       e.preventDefault();
-      origin.current = { startX: e.clientX, startY: e.clientY, originX: position.x, originY: position.y };
+      // 上一段拖曳若未正常結束（多指、pointercancel 遺漏），先清乾淨再開始。
+      cleanupRef.current?.();
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const originX = position.x;
+      const originY = position.y;
 
       const onMove = (ev: PointerEvent) => {
-        const o = origin.current;
-        if (!o) return;
-        setPosition(clamp(o.originX + (ev.clientX - o.startX), o.originY + (ev.clientY - o.startY)));
+        setPosition(clamp(originX + (ev.clientX - startX), originY + (ev.clientY - startY)));
       };
       const onUp = () => {
-        origin.current = null;
-        document.removeEventListener("pointermove", moveRef.current);
-        document.removeEventListener("pointerup", upRef.current);
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+        document.removeEventListener("pointercancel", onUp);
+        cleanupRef.current = null;
       };
-      moveRef.current = onMove;
-      upRef.current = onUp;
+
       document.addEventListener("pointermove", onMove);
       document.addEventListener("pointerup", onUp);
+      document.addEventListener("pointercancel", onUp);
+      cleanupRef.current = onUp;
     },
     [position.x, position.y, clamp],
   );
+
+  // 元件卸載時若仍在拖曳中，移除殘留的 document listener。
+  useEffect(() => () => cleanupRef.current?.(), []);
 
   return { position, setPosition, dragHandleProps: { onPointerDown } };
 }
