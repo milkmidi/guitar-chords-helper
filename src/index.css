@@ -1374,9 +1374,26 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   color: var(--muted);
   cursor: pointer;
 }
-.metronome-panel-compact {
-  font-size: 20px;
-  line-height: 1;
+.metronome-compact-icon {
+  width: 22px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+.metronome-compact-icon span {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.metronome-compact-icon span.is-downbeat {
+  background: var(--accent);
+  opacity: 1;
 }
 .metronome-panel-compact:hover,
 .metronome-panel-close:hover {

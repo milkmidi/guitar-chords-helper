@@ -20,6 +20,14 @@ const CloseIcon = (
     <path d="M6 6l12 12M18 6L6 18" />
   </svg>
 );
+const CompactModeIcon = (
+  <span className="metronome-compact-icon" aria-hidden="true">
+    <span className="is-downbeat" />
+    <span />
+    <span />
+    <span />
+  </span>
+);
 
 export default function MetronomeLauncher() {
   const {
@@ -55,8 +63,9 @@ export default function MetronomeLauncher() {
               onClick={enterCompactMode}
               onPointerDown={(e) => e.stopPropagation()}
               aria-label="切換至精簡模式"
+              title="只顯示節拍點"
             >
-              <span aria-hidden="true">−</span>
+              {CompactModeIcon}
             </button>
             <button
               type="button"

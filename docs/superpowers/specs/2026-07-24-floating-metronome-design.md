@@ -86,6 +86,9 @@ section owns its instrument-local state" pattern.
 - In expanded mode, the panel has a **header bar** containing a drag-handle
   glyph, title (節拍器), compact-mode button, and close (✕) button. Dragging grabs
   the **header only**, so the dial and buttons stay interactive.
+- The compact-mode button previews its result with a small pill containing four
+  beat dots, with the first dot accented. It does not use a minus or window
+  minimize symbol. Its tooltip reads `只顯示節拍點`.
 - `useDraggable` tracks `{x, y}`, updates on pointer move, and **clamps** so the
   panel stays fully within the viewport (accounting for panel width/height).
 - **FAB**: fixed at bottom-right, accent-filled circular button with a `♪` icon,
