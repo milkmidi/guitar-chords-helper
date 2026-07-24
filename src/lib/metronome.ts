@@ -11,7 +11,7 @@ export function clampBpm(bpm: number): number {
   return Math.max(BPM_MIN, Math.min(BPM_MAX, bpm));
 }
 
-/** 指標相對於儀表中心的角度（度）；正上方為 0，順時針增加。 */
+/** 指標相對於儀表中心的角度（度）。正右方為 270°、正下方為 0/360°、正左方為 90°、正上方為 180°。 */
 export function getDegree(clientX: number, clientY: number, centerX: number, centerY: number): number {
   const x = clientX - centerX;
   const y = clientY - centerY;
