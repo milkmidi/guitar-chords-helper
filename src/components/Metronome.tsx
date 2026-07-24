@@ -51,6 +51,7 @@ export default function Metronome() {
 
   const onDialPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
       e.preventDefault();
       draggingDial.current = true;
       e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -142,6 +143,7 @@ export default function Metronome() {
         onPointerDown={onDialPointerDown}
         onPointerMove={onDialPointerMove}
         onPointerUp={onDialPointerUp}
+        onPointerCancel={onDialPointerUp}
       >
         <Pie value={progress} />
         <button
@@ -168,6 +170,7 @@ export default function Metronome() {
           type="button"
           className="metronome-play"
           onClick={() => setIsPlaying((p) => !p)}
+          aria-pressed={isPlaying}
           aria-label={isPlaying ? "暫停" : "播放"}
         >
           {isPlaying ? PauseIcon : PlayIcon}
