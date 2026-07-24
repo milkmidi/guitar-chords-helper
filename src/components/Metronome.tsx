@@ -1,4 +1,10 @@
-import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { useMetronome } from "../hooks/useMetronome";
 import { BPM_MAX, BPM_MIN, bpmFromAngle, bpmFromTaps, clampBpm, getDegree } from "../lib/metronome";
 import { Pie } from "./Pie";
@@ -27,7 +33,40 @@ const MutedIcon = (
   </svg>
 );
 
-export default function Metronome() {
+interface Props {
+  compact: boolean;
+  onCompactActivate: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+  compactDragHandleProps: {
+    onPointerDown: (event: ReactPointerEvent) => void;
+  };
+}
+
+interface BeatDotsProps {
+  beats: number;
+  currentBeat: number;
+  isPlaying: boolean;
+}
+
+function BeatDots({ beats, currentBeat, isPlaying }: BeatDotsProps) {
+  return (
+    <div className="metronome-dots" aria-hidden="true">
+      {Array.from({ length: beats }, (_, i) => (
+        <span
+          key={i}
+          className={`metronome-dot${i === 0 ? " is-downbeat" : ""}${
+            i === currentBeat && isPlaying ? " is-active" : ""
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function Metronome({
+  compact,
+  onCompactActivate,
+  compactDragHandleProps,
+}: Props) {
   const [bpm, setBpm] = useState(75);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(0);
@@ -85,20 +124,27 @@ export default function Metronome() {
 
   const progress = (bpm - BPM_MIN) / (BPM_MAX - BPM_MIN);
 
+  if (compact) {
+    return (
+      <div className="metronome is-compact">
+        <button
+          type="button"
+          className="metronome-compact"
+          onClick={onCompactActivate}
+          aria-label="展開節拍器"
+          {...compactDragHandleProps}
+        >
+          <BeatDots beats={beats} currentBeat={currentBeat} isPlaying={isPlaying} />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="metronome">
       <div className="metronome-timesig">{beats}/4</div>
 
-      <div className="metronome-dots">
-        {Array.from({ length: beats }, (_, i) => (
-          <span
-            key={i}
-            className={`metronome-dot${i === 0 ? " is-downbeat" : ""}${
-              i === currentBeat && isPlaying ? " is-active" : ""
-            }`}
-          />
-        ))}
-      </div>
+      <BeatDots beats={beats} currentBeat={currentBeat} isPlaying={isPlaying} />
 
       <div className="metronome-meters" role="group" aria-label="拍號">
         {BEAT_OPTIONS.map((n) => (

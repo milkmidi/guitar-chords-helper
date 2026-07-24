@@ -1124,6 +1124,30 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   padding: 18px 18px 20px;
   color: var(--ink);
 }
+.metronome.is-compact {
+  display: block;
+  padding: 0;
+}
+.metronome-compact {
+  width: 100%;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.metronome-compact:active {
+  cursor: grabbing;
+}
+.metronome-compact:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
 .metronome-timesig {
   font-family: var(--display);
   font-size: 28px;
@@ -1295,13 +1319,25 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   position: fixed;
   z-index: 60;
   width: 300px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.metronome-panel.is-compact {
+  width: 104px;
+  height: 44px;
   overflow: hidden;
+  border-radius: 999px;
 }
 .metronome-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1326,6 +1362,7 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   font-size: 14px;
   color: var(--ink);
 }
+.metronome-panel-minimize,
 .metronome-panel-close {
   display: grid;
   place-items: center;
@@ -1337,6 +1374,11 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   color: var(--muted);
   cursor: pointer;
 }
+.metronome-panel-minimize {
+  font-size: 20px;
+  line-height: 1;
+}
+.metronome-panel-minimize:hover,
 .metronome-panel-close:hover {
   background: var(--surface);
   color: var(--ink);

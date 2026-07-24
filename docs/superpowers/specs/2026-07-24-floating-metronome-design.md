@@ -29,8 +29,8 @@ src/lib/metronome.test.ts         vitest coverage for the above
 src/hooks/useMetronome.ts         precise requestAnimationFrame scheduler (ported), calls audio.playClick
 src/hooks/useDraggable.ts         pointer-based drag with viewport clamping (reusable)
 src/components/Pie.tsx            dial arc SVG (accent-token colored)
-src/components/Metronome.tsx      metronome UI: dial, BPM readout, TAP, time-sig, +/-, mute, play/pause
-src/components/MetronomeLauncher.tsx  owns open state; renders FAB + floating draggable panel
+src/components/Metronome.tsx      metronome UI: full controls or compact beat-dot view
+src/components/MetronomeLauncher.tsx  owns display mode and position; renders FAB + floating draggable panel
 src/lib/audio.ts                  add playClick(isAccent) using the shared AudioContext
 src/index.css                     metronome styles using existing design tokens
 src/App.tsx                       render <MetronomeLauncher /> (one line)
@@ -69,24 +69,55 @@ works on mobile.
 
 ### State ownership
 
-`MetronomeLauncher` owns `open` (boolean) and the panel position. The metronome's
-own state (bpm, isPlaying, currentBeat, timeSignature, muted) lives in
-`Metronome.tsx`. `App.tsx` only renders `<MetronomeLauncher />`, mirroring the
-existing "each section owns its instrument-local state" pattern.
+`MetronomeLauncher` owns the panel display mode (`closed`, `expanded`, or
+`compact`) and panel position. The metronome's own state (bpm, isPlaying,
+currentBeat, timeSignature, muted) lives in `Metronome.tsx`. The component stays
+mounted when switching between expanded and compact modes, so playback and all
+metronome state continue uninterrupted. Closing unmounts it and restores the
+existing defaults the next time it opens: 75 BPM, 4/4, unmuted, and paused.
+
+`App.tsx` only renders `<MetronomeLauncher />`, mirroring the existing "each
+section owns its instrument-local state" pattern.
 
 ## Floating panel & drag behavior
 
 - Panel is `position: fixed`, rendered as a `--surface` card with the project's
   border/shadow tokens.
-- Panel has a **header bar** containing a drag-handle glyph + title (節拍器) and a
-  close (✕) button. Dragging grabs the **header only**, so the dial and buttons
-  stay interactive.
+- In expanded mode, the panel has a **header bar** containing a drag-handle
+  glyph, title (節拍器), minimize button, and close (✕) button. Dragging grabs
+  the **header only**, so the dial and buttons stay interactive.
 - `useDraggable` tracks `{x, y}`, updates on pointer move, and **clamps** so the
   panel stays fully within the viewport (accounting for panel width/height).
 - **FAB**: fixed at bottom-right, accent-filled circular button with a `♪` icon,
   `aria-label` toggling open/close. Panel starts **closed**; opens at a default
   position near the FAB (e.g. bottom-right inset). Reopening keeps the last position.
 - Escape key or the ✕ button closes the panel.
+
+## Compact mode
+
+- Compact mode is entered only when the user presses the minimize button in the
+  expanded panel header. Playback, BPM, time signature, mute state, and current
+  beat are preserved. Scrolling, viewport changes, playback changes, and focus
+  changes never minimize the panel automatically.
+- The compact panel is a fixed-size pill of approximately **104 × 44 px**. Its
+  only visible content is the centered beat-dot row; it contains no title, drag
+  glyph, icon, BPM value, or playback control.
+- While playing, the active dot advances with the beat. While paused, the dots
+  remain still and the first dot retains the downbeat distinction. Muting audio
+  does not stop the visual beat animation and adds no mute icon.
+- A short click or tap anywhere on the compact panel restores expanded mode.
+  Dragging anywhere on it moves the panel. A movement threshold distinguishes a
+  drag from a click so releasing a drag does not expand the panel.
+- The FAB is hidden in compact mode, leaving the beat-dot pill as the only
+  metronome element on screen. Closing requires expanding the panel and using
+  the existing close control; keyboard Escape continues to close an open panel.
+- Minimizing and expanding retain the panel's current top-left position. The
+  position is re-clamped after either size change and after viewport resize or
+  orientation change so the whole panel remains visible.
+- The beat-dot row supports 3, 4, or 5 dots without changing the pill width.
+- The compact surface is an accessible button named `展開節拍器`; Enter and
+  Space restore expanded mode. The decorative dots are hidden from the
+  accessibility tree.
 
 ## Metronome features
 
@@ -136,4 +167,12 @@ Manual verification checklist:
 - Dial drag and TAP both change BPM; +/- step; mute silences clicks.
 - Play produces on-time clicks with accented downbeat; beat dots track the beat;
   time-signature change resets and re-accents correctly.
+- Minimize keeps playback and settings intact; compact mode shows only the
+  fixed-size beat-dot pill and hides the FAB.
+- Compact beat dots animate while playing, remain static while paused, and
+  continue animating while muted.
+- Compact panel distinguishes click-to-expand from drag, retains its position
+  through both mode changes, and re-clamps after resize or orientation change.
+- Compact panel supports pointer, Enter, and Space expansion; Escape closes it.
+- Closing and reopening resets the metronome to 75 BPM, 4/4, unmuted, and paused.
 - Works on a touch device (pointer events).
