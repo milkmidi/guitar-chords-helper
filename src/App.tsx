@@ -1,24 +1,32 @@
 import { useMemo, useState } from "react";
-import ChordCatalogSelector from "./components/ChordCatalogSelector";
+import ChordControls from "./components/ChordControls";
 import ChordNotesDisplay from "./components/ChordNotesDisplay";
+import ChordSearchDialog from "./components/ChordSearchDialog";
+import CompactChordControls from "./components/CompactChordControls";
 import GuitarSection from "./components/GuitarSection";
-import KeySelector from "./components/KeySelector";
 import MetronomeLauncher from "./components/MetronomeLauncher";
 import PianoSection from "./components/PianoSection";
 import { useChordCatalog } from "./hooks/useChordCatalog";
+import { useChordControlsUi } from "./hooks/useChordControlsUi";
 import { useRootShortcut } from "./hooks/useRootShortcut";
-import { CHORD_CATALOG } from "./lib/chordCatalog";
+import { CHORD_CATALOG, CHORD_CATEGORIES, searchChordCatalog } from "./lib/chordCatalog";
 import { getChordBySymbol, type Key } from "./lib/chords";
 
 export default function App() {
   const [selectedKey, setSelectedKey] = useState<Key>("C");
   useRootShortcut(setSelectedKey);
-  const { category, symbol, changeCategory, setSymbol } = useChordCatalog();
+  const { category, symbol, changeCategory, selectSymbol, cycleSymbol } = useChordCatalog();
+  const controlsUi = useChordControlsUi();
 
   const chord = useMemo(() => getChordBySymbol(selectedKey, symbol), [selectedKey, symbol]);
+  const catalogChord = CHORD_CATALOG.find((entry) => entry.symbol === symbol);
+  const searchResults = useMemo(
+    () => searchChordCatalog(controlsUi.searchQuery),
+    [controlsUi.searchQuery],
+  );
   // 英雄區類型標籤：大三和弦顯示空白（僅 "C"），其餘用 catalog label
-  const typeLabel =
-    symbol === "major" ? "" : (CHORD_CATALOG.find((c) => c.symbol === symbol)?.label ?? symbol);
+  const typeLabel = symbol === "major" ? "" : (catalogChord?.label ?? symbol);
+  const compactTypeLabel = catalogChord?.label ?? symbol;
   const chordName = `${selectedKey}${typeLabel ? ` ${typeLabel}` : ""}`;
   const noteLabels = useMemo(() => {
     const labels = new Map<number, string>();
@@ -27,7 +35,8 @@ export default function App() {
   }, [chord]);
 
   return (
-    <main className="page">
+    <main className={`page ${controlsUi.compactVisible ? "is-compact-visible" : ""}`}>
+      <div className="page-content" inert={Boolean(controlsUi.compactSelector)}>
       <header className="masthead">
         <h1>Guitar Chords Helper</h1>
         <p className="masthead-subtitle">選根音與和弦類型，同時在吉他指板與鋼琴鍵盤上查看。</p>
@@ -42,25 +51,16 @@ export default function App() {
         root={chord.root}
       />
 
-      <section className="controls" aria-label="建立和弦">
-        <div className="selector-group">
-          <p className="field-label">
-            根音 <span className="field-hint">按 1–7 = C–B</span>
-          </p>
-          <KeySelector selected={selectedKey} onSelect={setSelectedKey} />
-        </div>
-        <div className="selector-group">
-          <p className="field-label">
-            和弦類型 <span className="field-hint">←/→ 切換，↑/↓ 分類</span>
-          </p>
-          <ChordCatalogSelector
-            category={category}
-            symbol={symbol}
-            onCategoryChange={changeCategory}
-            onSymbolChange={setSymbol}
-          />
-        </div>
-      </section>
+      <ChordControls
+        controlsRef={controlsUi.fullControlsRef}
+        selectedKey={selectedKey}
+        category={category}
+        symbol={symbol}
+        onKeySelect={setSelectedKey}
+        onCategoryChange={changeCategory}
+        onSymbolChange={selectSymbol}
+        onSearchOpen={controlsUi.openSearch}
+      />
 
       <div className="instrument-grid">
         <GuitarSection
@@ -93,6 +93,42 @@ export default function App() {
       </footer>
 
       <MetronomeLauncher />
+      </div>
+
+      <CompactChordControls
+        visible={controlsUi.compactVisible && !controlsUi.searchOpen}
+        selectedKey={selectedKey}
+        category={category}
+        symbol={symbol}
+        symbolLabel={compactTypeLabel}
+        openSelector={controlsUi.compactSelector}
+        onKeySelect={(key) => {
+          setSelectedKey(key);
+          controlsUi.closeCompactSelector();
+        }}
+        onSymbolChange={(nextSymbol) => {
+          selectSymbol(nextSymbol);
+          controlsUi.closeCompactSelector();
+        }}
+        onCycleSymbol={cycleSymbol}
+        onToggleSelector={controlsUi.toggleCompactSelector}
+        onCloseSelector={controlsUi.closeCompactSelector}
+        onSearchOpen={controlsUi.openSearch}
+      />
+
+      <ChordSearchDialog
+        dialogRef={controlsUi.searchDialogRef}
+        inputRef={controlsUi.searchInputRef}
+        query={controlsUi.searchQuery}
+        results={searchResults}
+        categories={CHORD_CATEGORIES}
+        onQueryChange={controlsUi.setSearchQuery}
+        onSelect={(nextSymbol) => {
+          selectSymbol(nextSymbol);
+          controlsUi.closeSearch();
+        }}
+        onClose={controlsUi.closeSearch}
+      />
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cycleIndex } from "./useArrowCycle";
+import { cycleIndex } from "./chordControls";
 
 describe("cycleIndex", () => {
   it("往後移動", () => {

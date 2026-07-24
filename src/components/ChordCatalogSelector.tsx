@@ -1,15 +1,13 @@
-import { useEffect, useRef } from "react";
-import {
-  CHORD_CATEGORIES,
-  chordsInCategory,
-  type CategoryFilter,
-} from "../lib/chordCatalog";
+import type { ReactNode } from "react";
+import { CHORD_CATEGORIES, chordsInCategory, type ChordCategory } from "../lib/chordCatalog";
+import ChordTypeGrid from "./ChordTypeGrid";
 
 interface Props {
-  category: CategoryFilter;
+  category: ChordCategory;
   symbol: string; // 目前選取的和弦符號
-  onCategoryChange: (category: CategoryFilter) => void;
+  onCategoryChange: (category: ChordCategory) => void;
   onSymbolChange: (symbol: string) => void;
+  action?: ReactNode;
 }
 
 export default function ChordCatalogSelector({
@@ -17,54 +15,56 @@ export default function ChordCatalogSelector({
   symbol,
   onCategoryChange,
   onSymbolChange,
+  action,
 }: Props) {
   const visible = chordsInCategory(category);
-
-  // 手機上這兩排是橫向捲動的，用鍵盤或切分類時把選中項捲回視野。
-  // block: "nearest" 不可省略，否則整頁會跟著垂直捲動。
-  // 不指定 behavior：smooth 在這種巢狀捲動容器上會靜默失效，交給 CSS 決定即可。
-  const selectedType = useRef<HTMLButtonElement>(null);
-  const activeCategory = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    selectedType.current?.scrollIntoView({ inline: "nearest", block: "nearest" });
-  }, [symbol, category]);
-
-  useEffect(() => {
-    activeCategory.current?.scrollIntoView({ inline: "nearest", block: "nearest" });
-  }, [category]);
+  const handleTabKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    currentIndex: number,
+  ) => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const direction = event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1;
+    const nextIndex =
+      (currentIndex + direction + CHORD_CATEGORIES.length) % CHORD_CATEGORIES.length;
+    onCategoryChange(CHORD_CATEGORIES[nextIndex].id);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      [nextIndex]?.focus();
+  };
 
   return (
     <div className="chord-catalog">
-      <div className="category-filter" role="group" aria-label="和弦分類">
-        {CHORD_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            ref={cat.id === category ? activeCategory : undefined}
-            type="button"
-            onClick={() => onCategoryChange(cat.id)}
-            aria-pressed={cat.id === category}
-            className={`category-button ${cat.id === category ? "is-active" : ""}`}
-          >
-            {cat.label}
-          </button>
-        ))}
+      <div className="category-row">
+        <div className="category-filter" role="tablist" aria-label="和弦分類">
+          {CHORD_CATEGORIES.map((cat, index) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => onCategoryChange(cat.id)}
+              role="tab"
+              aria-selected={cat.id === category}
+              aria-controls={`chord-panel-${cat.id}`}
+              id={`chord-tab-${cat.id}`}
+              tabIndex={cat.id === category ? 0 : -1}
+              onKeyDown={(event) => handleTabKeyDown(event, index)}
+              className={`category-button ${cat.id === category ? "is-active" : ""}`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+        {action}
       </div>
 
-      <div className="type-selector" aria-label="選擇和弦類型">
-        {visible.map((chord) => (
-          <button
-            key={chord.symbol}
-            ref={chord.symbol === symbol ? selectedType : undefined}
-            type="button"
-            onClick={() => onSymbolChange(chord.symbol)}
-            aria-pressed={chord.symbol === symbol}
-            className={`type-button ${chord.symbol === symbol ? "is-selected" : ""}`}
-          >
-            {chord.label}
-          </button>
-        ))}
-      </div>
+      <ChordTypeGrid
+        chords={visible}
+        symbol={symbol}
+        id={`chord-panel-${category}`}
+        labelledBy={`chord-tab-${category}`}
+        onSymbolChange={onSymbolChange}
+      />
     </div>
   );
 }
