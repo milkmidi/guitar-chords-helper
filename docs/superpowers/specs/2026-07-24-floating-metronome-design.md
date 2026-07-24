@@ -84,7 +84,7 @@ section owns its instrument-local state" pattern.
 - Panel is `position: fixed`, rendered as a `--surface` card with the project's
   border/shadow tokens.
 - In expanded mode, the panel has a **header bar** containing a drag-handle
-  glyph, title (節拍器), minimize button, and close (✕) button. Dragging grabs
+  glyph, title (節拍器), compact-mode button, and close (✕) button. Dragging grabs
   the **header only**, so the dial and buttons stay interactive.
 - `useDraggable` tracks `{x, y}`, updates on pointer move, and **clamps** so the
   panel stays fully within the viewport (accounting for panel width/height).
@@ -95,10 +95,10 @@ section owns its instrument-local state" pattern.
 
 ## Compact mode
 
-- Compact mode is entered only when the user presses the minimize button in the
+- Compact mode is entered only when the user presses the compact-mode button in the
   expanded panel header. Playback, BPM, time signature, mute state, and current
   beat are preserved. Scrolling, viewport changes, playback changes, and focus
-  changes never minimize the panel automatically.
+  changes never enter compact mode automatically.
 - The compact panel is a fixed-size pill of approximately **104 × 44 px**. Its
   only visible content is the centered beat-dot row; it contains no title, drag
   glyph, icon, BPM value, or playback control.
@@ -111,7 +111,7 @@ section owns its instrument-local state" pattern.
 - The FAB is hidden in compact mode, leaving the beat-dot pill as the only
   metronome element on screen. Closing requires expanding the panel and using
   the existing close control; keyboard Escape continues to close an open panel.
-- Minimizing and expanding retain the panel's current top-left position. The
+- Entering compact mode and expanding retain the panel's current top-left position. The
   position is re-clamped after either size change and after viewport resize or
   orientation change so the whole panel remains visible.
 - The beat-dot row supports 3, 4, or 5 dots without changing the pill width.
@@ -144,8 +144,9 @@ other beats and from the active-beat highlight.
   context `currentTime`) to avoid `setInterval` drift.
 - Maintains `nextNoteTime` and advances by `60 / bpm`; on each due beat it calls
   `playClick(beat === 0)` (unless muted) and reports the beat via `onBeat`.
-- Restarts cleanly when `isPlaying`, `bpm`, or `beats` change; cancels the RAF and
-  resets the beat to 0 on stop.
+- Restarts cleanly when `isPlaying` or `beats` change; a time-signature change
+  starts again from the downbeat. BPM changes are read through a ref and apply
+  to the next calculated interval without resetting the beat sequence.
 
 ## Testing
 
@@ -167,7 +168,7 @@ Manual verification checklist:
 - Dial drag and TAP both change BPM; +/- step; mute silences clicks.
 - Play produces on-time clicks with accented downbeat; beat dots track the beat;
   time-signature change resets and re-accents correctly.
-- Minimize keeps playback and settings intact; compact mode shows only the
+- Entering compact mode keeps playback and settings intact; compact mode shows only the
   fixed-size beat-dot pill and hides the FAB.
 - Compact beat dots animate while playing, remain static while paused, and
   continue animating while muted.

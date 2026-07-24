@@ -51,7 +51,7 @@ export default function MetronomeLauncher() {
             <span className="metronome-panel-title">節拍器</span>
             <button
               type="button"
-              className="metronome-panel-minimize"
+              className="metronome-panel-compact"
               onClick={enterCompactMode}
               onPointerDown={(e) => e.stopPropagation()}
               aria-label="切換至精簡模式"

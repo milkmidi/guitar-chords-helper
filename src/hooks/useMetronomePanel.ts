@@ -13,11 +13,12 @@ import {
   type MetronomePanelAction,
   type MetronomePanelMode,
 } from "../lib/metronomePanel";
-import { useDraggable, type Position } from "./useDraggable";
+import { type PointerPosition } from "../lib/pointerGesture";
+import { useDraggable } from "./useDraggable";
 
 interface UseMetronomePanelResult {
   panelRef: RefObject<HTMLDivElement | null>;
-  position: Position;
+  position: PointerPosition;
   open: boolean;
   compact: boolean;
   dragHandleProps: {

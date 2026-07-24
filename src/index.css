@@ -1362,7 +1362,7 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   font-size: 14px;
   color: var(--ink);
 }
-.metronome-panel-minimize,
+.metronome-panel-compact,
 .metronome-panel-close {
   display: grid;
   place-items: center;
@@ -1374,11 +1374,11 @@ button.staff-wrap.is-playable:active { transform: translate(2px, 2px); box-shado
   color: var(--muted);
   cursor: pointer;
 }
-.metronome-panel-minimize {
+.metronome-panel-compact {
   font-size: 20px;
   line-height: 1;
 }
-.metronome-panel-minimize:hover,
+.metronome-panel-compact:hover,
 .metronome-panel-close:hover {
   background: var(--surface);
   color: var(--ink);

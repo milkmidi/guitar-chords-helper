@@ -8,20 +8,15 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { wasPointerDragged } from "../lib/pointerGesture";
-
-export interface Position {
-  x: number;
-  y: number;
-}
+import { wasPointerDragged, type PointerPosition } from "../lib/pointerGesture";
 
 interface UseDraggableOptions {
   onDragEnd?: (didDrag: boolean) => void;
 }
 
 interface UseDraggableResult {
-  position: Position;
-  setPosition: Dispatch<SetStateAction<Position>>;
+  position: PointerPosition;
+  setPosition: Dispatch<SetStateAction<PointerPosition>>;
   reclamp: () => void;
   dragHandleProps: {
     onPointerDown: (event: ReactPointerEvent) => void;
@@ -30,18 +25,18 @@ interface UseDraggableResult {
 
 // 以指定把手拖曳浮動面板；限制在視窗範圍內。
 export function useDraggable<T extends HTMLElement>(
-  initial: Position,
+  initial: PointerPosition,
   panelRef: RefObject<T | null>,
   { onDragEnd }: UseDraggableOptions = {},
 ): UseDraggableResult {
-  const [position, setPosition] = useState<Position>(initial);
+  const [position, setPosition] = useState<PointerPosition>(initial);
   // 記住目前這段拖曳的清理函式，元件卸載或下一次拖曳開始前用來移除殘留 listener。
   const cleanupRef = useRef<(() => void) | null>(null);
   const onDragEndRef = useRef(onDragEnd);
   onDragEndRef.current = onDragEnd;
 
   const clamp = useCallback(
-    (x: number, y: number): Position => {
+    (x: number, y: number): PointerPosition => {
       const el = panelRef.current;
       const rect = el?.getBoundingClientRect();
       const w = rect?.width ?? 0;
